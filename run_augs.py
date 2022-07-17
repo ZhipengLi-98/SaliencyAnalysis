@@ -7,6 +7,7 @@ imgs_path = "./imgs"
 aug_path = "./augs"
 
 for user in os.listdir(imgs_path):
+    user = "lzp"
     print(user)
     for condition in os.listdir(os.path.join(imgs_path, user)):
         print(condition)
@@ -21,4 +22,5 @@ for user in os.listdir(imgs_path):
                     dsize = (384, 224)
                     output = cv2.resize(img, dsize)
                     cv2.imwrite(os.path.join(output_path) + "/%04d.png" % (i + 1), output)
+    break
 

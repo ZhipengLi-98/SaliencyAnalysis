@@ -102,6 +102,7 @@ if __name__ == '__main__':
     imgs_path = "./imgs"
     saliency_path = "./saliency"
     for user in os.listdir(imgs_path):
+        user = "crj"
         print(user)
         for condition in os.listdir(os.path.join(imgs_path, user)):
             print(condition)
@@ -110,3 +111,4 @@ if __name__ == '__main__':
                     input_path = os.path.join(imgs_path, user, condition, folder)
                     output_path = os.path.join(saliency_path, user, folder)
                     main(input_path, output_path)
+        break
