@@ -1,9 +1,13 @@
 import os
-import cv2 
+import cv2
+from matplotlib.cbook import simple_linear_interpolation 
 import numpy as np
 from tqdm import tqdm
 from pyemd import emd, emd_samples
 import pandas as pd
+from matplotlib import pyplot as plt
+from scipy.stats import wasserstein_distance
+import ot
 
 def img_to_sig(arr):
     """Convert a 2D array to a signature for cv2.EMD"""
@@ -26,6 +30,37 @@ def img_to_sig2(img):
             sig[idx] = np.array([img[i,j], i, j])
             idx += 1
     return sig
+
+def get_signature_from_heatmap(hm):
+    nr = hm.shape[0]
+    nc = hm.shape[1]
+    # print hm
+
+    sig = np.zeros((nr*nc), dtype=np.float32)
+    for r in range(nr):
+        for c in range(nc):
+            idx = r * nc + c
+            sig[idx] = hm[r, c]
+
+    sig[:] /= np.sum(sig[:])
+    # print sig
+    return sig
+
+def sliced_wasserstein(X, Y, num_proj):
+    dim = X.shape[1]
+    ests = []
+    for _ in range(num_proj):
+        # sample uniformly from the unit sphere
+        dir = np.random.rand(dim)
+        dir /= np.linalg.norm(dir)
+
+        # project the data
+        X_proj = X @ dir
+        Y_proj = Y @ dir
+
+        # compute 1d wasserstein
+        ests.append(wasserstein_distance(X_proj, Y_proj))
+    return np.mean(ests)
 
 aug_path = "./augs"
 sal_path = "./saliency"
@@ -70,15 +105,28 @@ for user in os.listdir(aug_path):
 
             if (np.mean(innerpoints)) < 70 and flag:
                 print(imgs, np.mean(innerpoints))
-                # sig_binary = img_to_sig2(binary)
-                # sig_sal = img_to_sig2(sal_img)
-                # print(emd_samples(sig_binary, sig_sal))
                 label = 1
             sal_img = cv2.imread(os.path.join(sal_path, user, condition.split("aug")[0] + "all.mp4", imgs), cv2.IMREAD_GRAYSCALE)
-            xs.append(emd_samples(binary, sal_img))
+            # xs.append(emd_samples(binary, sal_img))
+
+            sal_img_resize = cv2.resize(sal_img, (19, 11), interpolation=cv2.INTER_LANCZOS4)
+            binary_resize = cv2.resize(binary, (19, 11), interpolation=cv2.INTER_LANCZOS4)
+            xs.append(sliced_wasserstein(sal_img_resize, binary_resize, 100) / np.sum(sal_img_resize))
             ys.append(label)
+
+            # print(sliced_wasserstein(sal_img_resize, binary_resize, 100))
+            # print(np.sum(sal_img_resize))
+            # print(sliced_wasserstein(sal_img_resize, binary_resize, 100) / np.sum(sal_img_resize))
+            # cv2.imshow("test", sal_img)
+            # cv2.waitKey()
+            # cv2.imshow("test", sal_img_resize)
+            # cv2.waitKey()
+            # exit()
+            # print(sliced_wasserstein(sal_img_resize, binary_resize, 100))
+            # print(np.sum(sal_img_resize))
+            # exit()
         df = pd.DataFrame({"emd": xs, "label": ys})
-        df.to_csv("./data.csv")
+        df.to_csv("./data_test.csv")
         exit()
     break  
                 

@@ -4,12 +4,21 @@ from sklearn.model_selection import train_test_split
 
 from matplotlib import pyplot as plt
 
+fig, axes = plt.subplots(1, 2)
+
 df = pd.read_csv("./data.csv")
 
 X = df['emd']
 y = df['label']
 
-plt.scatter(X, y)
+axes[0].scatter(X, y)
+
+df = pd.read_csv("./data_test.csv")
+
+X = df['emd']
+y = df['label']
+
+axes[1].scatter(X, y)
 plt.show()
 
 print(df[df['label'] == 1])

@@ -7,7 +7,7 @@ imgs_path = "./imgs"
 aug_path = "./augs"
 
 for user in os.listdir(imgs_path):
-    user = "lzp"
+    user = "crj"
     print(user)
     for condition in os.listdir(os.path.join(imgs_path, user)):
         print(condition)
@@ -20,7 +20,7 @@ for user in os.listdir(imgs_path):
                 for i in tqdm(range(len(os.listdir(input_path)))):
                     img = cv2.imread(os.path.join(input_path) + "/frame%d.jpg" % i)
                     dsize = (384, 224)
-                    output = cv2.resize(img, dsize)
+                    output = cv2.resize(img, dsize, interpolation=cv2.INTER_LANCZOS4)
                     cv2.imwrite(os.path.join(output_path) + "/%04d.png" % (i + 1), output)
     break
 
