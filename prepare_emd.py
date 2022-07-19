@@ -7,7 +7,7 @@ from pyemd import emd, emd_samples
 import pandas as pd
 from matplotlib import pyplot as plt
 from scipy.stats import wasserstein_distance
-import ot
+# import ot
 
 def img_to_sig(arr):
     """Convert a 2D array to a signature for cv2.EMD"""
@@ -65,6 +65,7 @@ def sliced_wasserstein(X, Y, num_proj):
 aug_path = "./augs"
 sal_path = "./saliency"
 
+idx = []
 xs = []
 ys = []
 
@@ -72,6 +73,8 @@ for user in os.listdir(aug_path):
     user = "crj"
     print(user)
     for condition in os.listdir(os.path.join(aug_path, user)):
+        if "con" not in condition:
+            continue
         print(condition)
         for imgs in tqdm(os.listdir(os.path.join(aug_path, user, condition))):
             # print(imgs)
@@ -79,40 +82,63 @@ for user in os.listdir(aug_path):
             gray = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
             ret, binary = cv2.threshold(gray, 20, 255, cv2.THRESH_BINARY)
             contours, hierarchy = cv2.findContours(binary, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-            outline = contours[0]
-            if len(contours) > 1:
-                temp = []
-                num = 0
-                for c in contours:
-                    if len(c) > num:
-                        temp = c
-                        num = len(c)
-                outline = temp
+
             innerpoints = []
-            flag = True
-            for i in range(img.shape[0]):
-                for j in range(img.shape[1]):
-                    if cv2.pointPolygonTest(outline, (j, i), False) > 0:
-                        innerpoints.append(gray[i][j])
-                        if gray[i][j] > 250:
-                            flag = False
-                    if not flag:
-                        break
-                if not flag:
-                    break
-            
             label = 0
+            outline = []
+            aug_dis = np.zeros((img.shape[0], img.shape[1], 1), np.float32)
+            if len(contours) == 0:
+                # no augmentation
+                pass
+            else:
+                outline = contours[0]
+                if len(contours) > 1:
+                    temp = []
+                    num = 0
+                    for c in contours:
+                        if len(c) > num:
+                            temp = c
+                            num = len(c)
+                    outline = temp
+                for i in range(img.shape[0]):
+                    for j in range(img.shape[1]):
+                        if cv2.pointPolygonTest(outline, (j, i), False) > 0:
+                            innerpoints.append([i, j, gray[i][j]])
+                
+                if len(innerpoints) > 0:
+                    innerpoints = np.array(innerpoints)
+                    if (np.mean(innerpoints[:, 2])) < 70:
+                        print(imgs, np.mean(np.mean(innerpoints[:, 2])))
+                        label = 1
+                
+                    noise_point = np.random.multivariate_normal([np.mean(innerpoints[:, 0]), np.mean(innerpoints[:, 1])], [[np.std(innerpoints[:, 0]), 0], [0, np.std(innerpoints[:, 1])]], 1000)
+                    for point in noise_point:
+                        aug_dis[int(point[0]), int(point[1])] += 1 / 1000 * 255
 
-            if (np.mean(innerpoints)) < 70 and flag:
-                print(imgs, np.mean(innerpoints))
-                label = 1
-            sal_img = cv2.imread(os.path.join(sal_path, user, condition.split("aug")[0] + "all.mp4", imgs), cv2.IMREAD_GRAYSCALE)
-            # xs.append(emd_samples(binary, sal_img))
+            sal_img = cv2.imread(os.path.join(sal_path, user, condition.split("aug")[0] + "all.mp4", imgs), cv2.IMREAD_GRAYSCALE).astype(dtype=np.float32)
+            
+            sal_img_resize = cv2.resize(sal_img, (38, 22), interpolation=cv2.INTER_LANCZOS4)
+            sal_img_resize /= np.sum(sal_img_resize)
+            aug_resize = cv2.resize(aug_dis, (38, 22), interpolation=cv2.INTER_LANCZOS4)
+            aug_resize /= np.sum(aug_resize)
 
-            sal_img_resize = cv2.resize(sal_img, (19, 11), interpolation=cv2.INTER_LANCZOS4)
-            binary_resize = cv2.resize(binary, (19, 11), interpolation=cv2.INTER_LANCZOS4)
-            xs.append(sliced_wasserstein(sal_img_resize, binary_resize, 100) / np.sum(sal_img_resize))
-            ys.append(label)
+            emd = sliced_wasserstein(sal_img_resize, aug_resize, 100)
+
+            if len(innerpoints) == 0 or np.isnan(emd):
+                pass
+            else:
+                # xs.append(emd_samples(binary, sal_img))
+                xs.append(emd)
+                idx.append(imgs)
+                ys.append(label)
+
+            # cv2.imshow("test", aug_dis)
+            # cv2.waitKey(0)
+
+            # print(sliced_wasserstein(sal_img_resize, aug_resize, 100))
+            # print(emd_samples(sal_img_resize, aug_resize))
+            # print(np.sum(sal_img_resize), np.sum(aug_resize))
+            # exit()
 
             # print(sliced_wasserstein(sal_img_resize, binary_resize, 100))
             # print(np.sum(sal_img_resize))
@@ -125,8 +151,8 @@ for user in os.listdir(aug_path):
             # print(sliced_wasserstein(sal_img_resize, binary_resize, 100))
             # print(np.sum(sal_img_resize))
             # exit()
-        df = pd.DataFrame({"emd": xs, "label": ys})
+        df = pd.DataFrame({"name": idx, "emd": xs, "label": ys})
         df.to_csv("./data_test.csv")
-        exit()
+        # exit()
     break  
                 
