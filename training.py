@@ -10,14 +10,7 @@ import numpy as np
 
 fig, axes = plt.subplots(1, 1)
 
-df = pd.read_csv("./data.csv")
-
-X = df['emd']
-y = df['label']
-
-# axes[0].scatter(X, y)
-
-df = pd.read_csv("./data_test.csv")
+df = pd.read_csv("./data_gaze.csv")
 
 class_0 = df[df['label'] == 0]
 class_1 = df[df['label'] == 1]
