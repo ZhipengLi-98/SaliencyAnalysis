@@ -7,12 +7,13 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import cross_val_score
 import numpy as np
+import sklearn.metrics as metrics
 
 # fig, axes = plt.subplots(1, 1)
 
 df_con = pd.read_csv("./data_con.csv")
 df_gaze = pd.read_csv("./data_gaze.csv")
-df = df_con + df_gaze
+df = pd.concat([df_con, df_gaze])
 
 class_0 = df[df['label'] == 0]
 class_1 = df[df['label'] == 1]
@@ -21,8 +22,8 @@ class_1_over = class_1.sample(class_count_0, replace=True)
 
 test = pd.concat([class_1_over, class_0], axis=0)
 
-X = test['emd']
-y = test['label']
+X = df['emd']
+y = df['label']
 
 print(len(X))
 
@@ -33,13 +34,31 @@ X = X.values.reshape(-1, 1)
 
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=0)
 
-clf = svm.SVC(probability=True)
-scores = cross_val_score(clf, X, y, cv=5)
-print(np.mean(scores))
+# clf = svm.SVC(probability=True)
+# scores = cross_val_score(clf, X, y, cv=5)
+# print(np.mean(scores))
 
 clf = LogisticRegression(random_state=0)
-scores = cross_val_score(clf, X, y, cv=5)
-print(np.mean(scores))
+clf.fit(X_train, y_train)
+# scores = cross_val_score(clf, X, y, cv=5)
+# print(np.mean(scores))
+
+probs = clf.predict_proba(X_test)
+preds = probs[:,1]
+fpr, tpr, threshold = metrics.roc_curve(y_test, preds)
+print(threshold)
+roc_auc = metrics.auc(fpr, tpr)
+
+plt.plot(fpr, tpr, 'b', label = 'AUC = %0.2f' % roc_auc)
+plt.legend(loc = 'lower right')
+plt.plot([0, 1], [0, 1],'r--')
+plt.xlim([0, 1])
+plt.ylim([0, 1])
+plt.ylabel('True Positive Rate')
+plt.xlabel('False Positive Rate')
+plt.show()
+
+exit()
 
 clf = RandomForestClassifier(random_state=0)
 scores = cross_val_score(clf, X, y, cv=5)

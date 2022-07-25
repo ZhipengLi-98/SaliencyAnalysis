@@ -107,8 +107,8 @@ for user in os.listdir(aug_path):
                 idx.append(imgs)
                 ys.append(label)
             
-        df = pd.DataFrame({"name": idx, "emd": xs, "label": ys})
-        df.to_csv("./data_con.csv")
+    df = pd.DataFrame({"name": idx, "emd": xs, "label": ys})
+    df.to_csv("./data_con.csv")
     break  
             
 idx = []
@@ -198,7 +198,7 @@ for user in os.listdir(aug_path):
                     idx.append(imgs)
                     ys.append(label)
             
-        df = pd.DataFrame({"name": idx, "emd": xs, "label": ys})
-        df.to_csv("./data_gaze.csv")
+    df = pd.DataFrame({"name": idx, "emd": xs, "label": ys})
+    df.to_csv("./data_gaze.csv")
     break  
                 
