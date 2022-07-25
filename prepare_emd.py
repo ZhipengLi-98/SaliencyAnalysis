@@ -38,7 +38,7 @@ xs = []
 ys = []
 
 for user in os.listdir(aug_path):
-    user = "crj"
+    user = "zz"
     print(user)
     for condition in os.listdir(os.path.join(aug_path, user)):
         if "con" not in condition:
@@ -82,7 +82,7 @@ for user in os.listdir(aug_path):
                 
                     noise_point = np.random.multivariate_normal([np.mean(innerpoints[:, 0]), np.mean(innerpoints[:, 1])], [[np.std(innerpoints[:, 0]), 0], [0, np.std(innerpoints[:, 1])]], 1000)
                     for point in noise_point:
-                        aug_dis[int(point[0]), int(point[1])] += 1 / 1000 * 255
+                        aug_dis[int(point[0]) if int(point[0]) < 384 else 383, int(point[1]) if int(point[1]) < 224 else 223] += 1 / 1000 * 255
 
             sal_img = cv2.imread(os.path.join(sal_path, user, condition.split("aug")[0] + "all.mp4", imgs), cv2.IMREAD_GRAYSCALE).astype(dtype=np.float32)
             
@@ -115,7 +115,7 @@ idx = []
 xs = []
 ys = []    
 for user in os.listdir(aug_path):
-    user = "crj"
+    user = "zz"
     print(user)
     for condition in os.listdir(os.path.join(aug_path, user)):
         if "gaze" not in condition:
@@ -162,7 +162,7 @@ for user in os.listdir(aug_path):
                 
                     noise_point = np.random.multivariate_normal([np.mean(innerpoints[:, 0]), np.mean(innerpoints[:, 1])], [[np.std(innerpoints[:, 0]), 0], [0, np.std(innerpoints[:, 1])]], 1000)
                     for point in noise_point:
-                        aug_dis[int(point[0]), int(point[1])] += 1 / 1000 * 255
+                        aug_dis[int(point[0]) if int(point[0]) < 384 else 383, int(point[1]) if int(point[1]) < 224 else 223] += 1 / 1000 * 255
 
             sal_img = cv2.imread(os.path.join(sal_path, user, condition.split("aug")[0] + "all.mp4", imgs), cv2.IMREAD_GRAYSCALE).astype(dtype=np.float32)
             
