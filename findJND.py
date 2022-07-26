@@ -11,6 +11,7 @@ import sklearn.metrics as metrics
 import os
 import torch
 from torch import nn
+import math
 
 # fig, axes = plt.subplots(1, 1)
 
@@ -18,13 +19,8 @@ data_path = "./data"
 
 files = []
 for user in os.listdir(data_path):
-    user = "crj"
-    print(user)
     for condition in os.listdir(os.path.join(data_path, user)):
-        if "con" not in condition:
-            continue
         files.append(pd.read_csv(os.path.join(data_path, user, condition)))
-    break
 
 df = pd.concat(files)
 
@@ -35,16 +31,12 @@ class_1_over = class_1.sample(class_count_0, replace=True)
 
 test = pd.concat([class_1_over, class_0], axis=0)
 
-X = test['emd']
+const_emd = math.sqrt(76 * 76 + 44 * 44)
+
+X = test['emd'] / const_emd
 y = test['label']
 
 print(len(X))
-
-rnn = nn.LSTM(1, 20, 2)
-input = np.array(X).reshape(-1, 1)
-h0 = torch.randn(2, 20)
-c0 = torch.randn(2, 20)
-output, (hn, cn) = rnn(input, (h0, c0))
 
 min_emd = np.min(X)
 max_emd = np.max(X)
@@ -56,8 +48,8 @@ highest_roc_auc = 0
 highest_fpr = 0
 highest_tpr = 0
 
-for i in range(1000):
-    cur_emd = (max_emd - min_emd) * i / 1000 + min_emd
+for i in range(100):
+    cur_emd = (max_emd - min_emd) * i / 100 + min_emd
     pred_y = []
     for x, y_true in zip(X, y):
         if x < cur_emd:

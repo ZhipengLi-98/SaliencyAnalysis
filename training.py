@@ -10,8 +10,6 @@ import numpy as np
 import sklearn.metrics as metrics
 import os
 
-# fig, axes = plt.subplots(1, 1)
-
 data_path = "./data"
 
 files = []
@@ -33,8 +31,11 @@ y = test['label']
 
 print(len(X))
 
-# axes.scatter(X, y)
-# plt.show()
+fig, axes = plt.subplots(1, 1)
+axes.hist(class_0['emd'])
+axes.hist(class_1_over['emd'])
+plt.show()
+exit()
 
 X = X.values.reshape(-1, 1)
 

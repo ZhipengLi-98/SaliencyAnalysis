@@ -36,7 +36,7 @@ def run_con(user, condition, images):
     idx = []
     xs = []
     ys = []
-    for imgs in images:
+    for imgs in tqdm(images):
         # print(imgs)
         try:
             img = cv2.imread(os.path.join(aug_path, user, condition, imgs))
@@ -112,7 +112,7 @@ def run_gaze(user, condition, images):
     temp_x = []
     temp_idx = []
     temp_y = []
-    for imgs in images:
+    for imgs in tqdm(images):
         # print(imgs)
         try:
             img = cv2.imread(os.path.join(aug_path, user, condition, imgs))
@@ -192,26 +192,36 @@ def run_gaze(user, condition, images):
     df = pd.DataFrame({"name": idx, "emd": xs, "label": ys})
     df.to_csv("./data_{}_{}.csv".format(condition, user))
 
-class myThread (threading.Thread):
-    def __init__(self, user, condition, images):
-        threading.Thread.__init__(self)
-        self.user = user
-        self.name = condition
-        self.images = images
-    def run(self):
-        print("Starting " + self.name)
-        if "gaze" in self.name:
-            run_gaze(self.user, self.name, self.images)
-        else:
-            run_con(self.user, self.name, self.images)
-        print("Exiting " + self.name)
-
-temp = []
 for user in os.listdir(aug_path):
     for condition in os.listdir(os.path.join(aug_path, user)):
         images = sorted(os.listdir(os.path.join(aug_path, user, condition)))
-        temp.append(myThread(user, condition, images))
-for t in temp:
-    t.start()
-for t in temp:
-    t.join()
+        if "gaze" in condition:
+            run_gaze(user, condition, images)
+        else:
+            run_con(user, condition, images)
+
+# class myThread (threading.Thread):
+#     def __init__(self, user, condition, images):
+#         threading.Thread.__init__(self)
+#         self.user = user
+#         self.name = condition
+#         self.images = images
+#     def run(self):
+#         print("Starting " + self.name)
+#         if "gaze" in self.name:
+#             run_gaze(self.user, self.name, self.images)
+#         else:
+#             run_con(self.user, self.name, self.images)
+#         print("Exiting " + self.name)
+
+# temp = []
+# for user in os.listdir(aug_path):
+#     user = "gzt"
+#     for condition in os.listdir(os.path.join(aug_path, user)):
+#         images = sorted(os.listdir(os.path.join(aug_path, user, condition)))
+#         temp.append(myThread(user, condition, images))
+#     break
+# for t in temp:
+#     t.start()
+# for t in temp:
+#     t.join()
