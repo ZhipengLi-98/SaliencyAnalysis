@@ -1,9 +1,7 @@
 import os
 import cv2
-from matplotlib.cbook import simple_linear_interpolation 
 import numpy as np
 from tqdm import tqdm
-from pyemd import emd, emd_samples
 import pandas as pd
 from matplotlib import pyplot as plt
 from scipy.stats import wasserstein_distance

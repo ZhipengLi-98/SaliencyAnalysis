@@ -1,9 +1,7 @@
 import os
 import cv2
-from matplotlib.cbook import simple_linear_interpolation 
 import numpy as np
 from tqdm import tqdm
-from pyemd import emd, emd_samples
 import pandas as pd
 from matplotlib import pyplot as plt
 from scipy.stats import wasserstein_distance
@@ -33,14 +31,13 @@ def get_signature_from_heatmap(hm):
 aug_path = "./augs"
 sal_path = "./saliency"
 
-idx = []
-xs = []
-ys = []
-
-for user in os.listdir(aug_path):
+def run_con(user, condition_name):
+    idx = []
+    xs = []
+    ys = []
     print(user)
     for condition in os.listdir(os.path.join(aug_path, user)):
-        if "con" not in condition:
+        if condition_name not in condition:
             continue
         print(condition)
         images = sorted(os.listdir(os.path.join(aug_path, user, condition)))
@@ -109,17 +106,17 @@ for user in os.listdir(aug_path):
                     ys.append(label)
             except:
                 print(user, condition, imgs)
-            
-df = pd.DataFrame({"name": idx, "emd": xs, "label": ys})
-df.to_csv("./data_con.csv")
-            
-idx = []
-xs = []
-ys = []    
-for user in os.listdir(aug_path):
+                
+    df = pd.DataFrame({"name": idx, "emd": xs, "label": ys})
+    df.to_csv("./data_{}_{}.csv".format(condition_name, user))
+
+def run_gaze(user, condition_name):
+    idx = []
+    xs = []
+    ys = []    
     print(user)
     for condition in os.listdir(os.path.join(aug_path, user)):
-        if "gaze" not in condition:
+        if condition_name not in condition:
             continue
         print(condition)
         temp_x = []
@@ -202,7 +199,13 @@ for user in os.listdir(aug_path):
                         ys.append(label)
             except:
                 print(user, condition, imgs)
-            
-df = pd.DataFrame({"name": idx, "emd": xs, "label": ys})
-df.to_csv("./data_gaze.csv")
                 
+    df = pd.DataFrame({"name": idx, "emd": xs, "label": ys})
+    df.to_csv("./data_{}_{}.csv".format(condition_name, user))
+
+for user in os.listdir(aug_path):
+    run_con(user, "res_con")
+    run_con(user, "typ_con")
+    run_con(user, "res_gaze")
+    run_con(user, "typ_gaze")
+
