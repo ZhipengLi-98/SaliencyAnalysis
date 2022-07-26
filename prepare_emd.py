@@ -201,7 +201,7 @@ def run_gaze(user, condition, images):
     df.to_csv("./data_{}_{}_{}.csv".format(condition.split("_")[1], condition.split("_")[2], user))
 
 for user in os.listdir(aug_path):
-    user = "zz"
+    user = "zxyx"
     for condition in os.listdir(os.path.join(aug_path, user)):
         images = sorted(os.listdir(os.path.join(aug_path, user, condition)))
         if "gaze" in condition:
