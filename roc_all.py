@@ -37,8 +37,8 @@ test = pd.concat([class_1_over, class_0], axis=0)
 
 const_emd = math.sqrt(16 * 16 + 12 * 12)
 
-X = test['emd']
-y = test['label']
+X = df['emd']
+y = df['label']
 
 print(len(X))
 

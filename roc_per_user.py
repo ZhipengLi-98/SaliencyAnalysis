@@ -37,8 +37,8 @@ for user in os.listdir(data_path):
 
     const_emd = math.sqrt(16 * 16 + 12 * 12)
 
-    X = test['emd']
-    y = test['label']
+    X = df['emd']
+    y = df['label']
 
     print(len(X))
 
@@ -77,18 +77,19 @@ for user in os.listdir(data_path):
             highest_fpr = fpr
             highest_tpr = tpr
             highest_threshold = cur_emd
+            break
 
     roc_per_user.append(highest_roc_auc)
 
     print(highest_threshold)
 
-    plt.plot(highest_fpr, highest_tpr, 'b', label = 'AUC = %0.2f' % highest_roc_auc)
-    plt.legend(loc = 'lower right')
-    plt.plot([0, 1], [0, 1],'r--')
-    plt.xlim([0, 1])
-    plt.ylim([0, 1])
-    plt.ylabel('True Positive Rate')
-    plt.xlabel('False Positive Rate')
-    plt.show()
+    plt.plot(highest_fpr, highest_tpr, label = "AUC = %0.2f"% highest_roc_auc)
+plt.legend(loc = 'lower right')
+plt.plot([0, 1], [0, 1],'r--')
+plt.xlim([0, 1])
+plt.ylim([0, 1])
+plt.ylabel('True Positive Rate')
+plt.xlabel('False Positive Rate')
+plt.show()
 
 print(np.mean(np.array(roc_per_user)), np.std(np.array(roc_per_user)))
