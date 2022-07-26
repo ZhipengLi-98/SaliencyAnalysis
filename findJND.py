@@ -19,8 +19,10 @@ data_path = "./data"
 
 files = []
 for user in os.listdir(data_path):
+    user = "zz"
     for condition in os.listdir(os.path.join(data_path, user)):
         files.append(pd.read_csv(os.path.join(data_path, user, condition)))
+    break
 
 df = pd.concat(files)
 
@@ -31,9 +33,9 @@ class_1_over = class_1.sample(class_count_0, replace=True)
 
 test = pd.concat([class_1_over, class_0], axis=0)
 
-const_emd = math.sqrt(76 * 76 + 44 * 44)
+const_emd = math.sqrt(16 * 16 + 12 * 12)
 
-X = test['emd'] / const_emd
+X = test['emd']
 y = test['label']
 
 print(len(X))

@@ -6,6 +6,7 @@ import pandas as pd
 from matplotlib import pyplot as plt
 from scipy.stats import wasserstein_distance
 import threading
+from scipy.ndimage import gaussian_filter
 
 def get_signature_from_heatmap(hm):
     nr = hm.shape[0]
@@ -72,17 +73,20 @@ def run_con(user, condition, images):
                         print(imgs, np.mean(np.mean(innerpoints[:, 2])))
                         label = 1
                 
-                    noise_point = np.random.multivariate_normal([np.mean(innerpoints[:, 0]), np.mean(innerpoints[:, 1])], [[np.std(innerpoints[:, 0]), 0], [0, np.std(innerpoints[:, 1])]], 1000)
-                    for point in noise_point:
-                        if int(point[0]) < 224 and int(point[1]) < 384:
-                            aug_dis[int(point[0]), int(point[1])] += 1 / 1000 * 255
+                    # noise_point = np.random.multivariate_normal([np.mean(innerpoints[:, 0]), np.mean(innerpoints[:, 1])], [[np.std(innerpoints[:, 0]), 0], [0, np.std(innerpoints[:, 1])]], 1000)
+                    # for point in noise_point:
+                    #     if int(point[0]) < 224 and int(point[1]) < 384:
+                    #         aug_dis[int(point[0]), int(point[1])] += 1 / 1000 * 255
 
             sal_img = cv2.imread(os.path.join(sal_path, user, condition.split("aug")[0] + "all.mp4", imgs), cv2.IMREAD_GRAYSCALE).astype(dtype=np.float32)
             
-            sal_img_resize = cv2.resize(sal_img, (76, 44), interpolation=cv2.INTER_LANCZOS4)
-            # sal_img_resize /= np.sum(sal_img_resize)
-            aug_resize = cv2.resize(aug_dis, (76, 44), interpolation=cv2.INTER_LANCZOS4)
-            # aug_resize /= np.sum(aug_resize)
+            aug_dis = gaussian_filter(binary, sigma=7)
+            aug_dis = (aug_dis - np.min(aug_dis)) / (np.max(aug_dis) - np.min(aug_dis)) * 255.0
+
+            sal_img_resize = cv2.resize(sal_img, (16, 12), interpolation=cv2.INTER_LANCZOS4)
+            aug_resize = cv2.resize(aug_dis, (16, 12), interpolation=cv2.INTER_LANCZOS4)
+            # sal_img_resize = cv2.resize(sal_img, (76, 44), interpolation=cv2.INTER_LANCZOS4)
+            # aug_resize = cv2.resize(aug_dis, (76, 44), interpolation=cv2.INTER_LANCZOS4)
             
             sal_flat = get_signature_from_heatmap(sal_img_resize)
             aug_flat = get_signature_from_heatmap(aug_resize)
@@ -103,7 +107,7 @@ def run_con(user, condition, images):
             print(user, condition, imgs)
                 
     df = pd.DataFrame({"name": idx, "emd": xs, "label": ys})
-    df.to_csv("./data_{}_{}.csv".format(condition, user))
+    df.to_csv("./data_{}_{}_{}.csv".format(condition.split("_")[1], condition.split("_")[2], user))
 
 def run_gaze(user, condition, images):
     idx = []
@@ -148,17 +152,21 @@ def run_gaze(user, condition, images):
                         print(imgs, np.mean(np.mean(innerpoints[:, 2])))
                         label = 1
                 
-                    noise_point = np.random.multivariate_normal([np.mean(innerpoints[:, 0]), np.mean(innerpoints[:, 1])], [[np.std(innerpoints[:, 0]), 0], [0, np.std(innerpoints[:, 1])]], 1000)
-                    for point in noise_point:
-                        if int(point[0]) < 224 and int(point[1]) < 384:
-                            aug_dis[int(point[0]), int(point[1])] += 1 / 1000 * 255
+                    # noise_point = np.random.multivariate_normal([np.mean(innerpoints[:, 0]), np.mean(innerpoints[:, 1])], [[np.std(innerpoints[:, 0]), 0], [0, np.std(innerpoints[:, 1])]], 1000)
+                    # for point in noise_point:
+                    #     if int(point[0]) < 224 and int(point[1]) < 384:
+                    #         aug_dis[int(point[0]), int(point[1])] += 1 / 1000 * 255
 
             sal_img = cv2.imread(os.path.join(sal_path, user, condition.split("aug")[0] + "all.mp4", imgs), cv2.IMREAD_GRAYSCALE).astype(dtype=np.float32)
             
-            sal_img_resize = cv2.resize(sal_img, (76, 44), interpolation=cv2.INTER_LANCZOS4)
-            # sal_img_resize /= np.sum(sal_img_resize)
-            aug_resize = cv2.resize(aug_dis, (76, 44), interpolation=cv2.INTER_LANCZOS4)
-            # aug_resize /= np.sum(aug_resize)
+            aug_dis = gaussian_filter(binary, sigma=7)
+            aug_dis = (aug_dis - np.min(aug_dis)) / (np.max(aug_dis) - np.min(aug_dis)) * 255.0
+
+            sal_img_resize = cv2.resize(sal_img, (16, 12), interpolation=cv2.INTER_LANCZOS4)
+            aug_resize = cv2.resize(aug_dis, (16, 12), interpolation=cv2.INTER_LANCZOS4)
+
+            # sal_img_resize = cv2.resize(sal_img, (76, 44), interpolation=cv2.INTER_LANCZOS4)
+            # aug_resize = cv2.resize(aug_dis, (76, 44), interpolation=cv2.INTER_LANCZOS4)
             
             sal_flat = get_signature_from_heatmap(sal_img_resize)
             aug_flat = get_signature_from_heatmap(aug_resize)
@@ -190,15 +198,17 @@ def run_gaze(user, condition, images):
             print(user, condition, imgs)
                 
     df = pd.DataFrame({"name": idx, "emd": xs, "label": ys})
-    df.to_csv("./data_{}_{}.csv".format(condition, user))
+    df.to_csv("./data_{}_{}_{}.csv".format(condition.split("_")[1], condition.split("_")[2], user))
 
 for user in os.listdir(aug_path):
+    user = "zz"
     for condition in os.listdir(os.path.join(aug_path, user)):
         images = sorted(os.listdir(os.path.join(aug_path, user, condition)))
         if "gaze" in condition:
             run_gaze(user, condition, images)
         else:
             run_con(user, condition, images)
+    break
 
 # class myThread (threading.Thread):
 #     def __init__(self, user, condition, images):

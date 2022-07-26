@@ -14,8 +14,10 @@ data_path = "./data"
 
 files = []
 for user in os.listdir(data_path):
+    user = "zz"
     for condition in os.listdir(os.path.join(data_path, user)):
         files.append(pd.read_csv(os.path.join(data_path, user, condition)))
+    break
 
 df = pd.concat(files)
 
