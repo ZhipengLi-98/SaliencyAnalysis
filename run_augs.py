@@ -7,7 +7,7 @@ imgs_path = "./imgs"
 aug_path = "./augs"
 
 for user in os.listdir(imgs_path):
-    user = "sxy"
+    user = "zxyx"
     print(user)
     for condition in os.listdir(os.path.join(imgs_path, user)):
         print(condition)
