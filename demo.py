@@ -43,7 +43,7 @@ for user in os.listdir(aug_path):
             continue
         print(condition)
         for imgs in tqdm(os.listdir(os.path.join(aug_path, user, condition))):
-            imgs = "5558.png"
+            imgs = "5476.png"
             # print(imgs)
             img = cv2.imread(os.path.join(aug_path, user, condition, imgs))
             gray = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)

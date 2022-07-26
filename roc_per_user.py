@@ -12,10 +12,13 @@ import os
 import torch
 from torch import nn
 import math
+from scipy.special import softmax
 
 # fig, axes = plt.subplots(1, 1)
 
 data_path = "./data"
+
+roc_per_user = []
 
 for user in os.listdir(data_path):
     print(user)
@@ -48,24 +51,36 @@ for user in os.listdir(data_path):
     highest_roc_auc = 0
     highest_fpr = 0
     highest_tpr = 0
+    highest_threshold = 0
 
     for i in range(100):
         cur_emd = (max_emd - min_emd) * i / 100 + min_emd
         pred_y = []
         for x, y_true in zip(X, y):
             if x < cur_emd:
-                pred_y.append(1)
+                pred_y.append((cur_emd - x) / (cur_emd - min_emd))
             else:
-                pred_y.append(0)
-        emds.append(cur_emd)
-        accs.append(metrics.accuracy_score(y, pred_y))
+                pred_y.append((cur_emd - x) / (max_emd - cur_emd))
+        # emds.append(cur_emd)
+        # accs.append(metrics.accuracy_score(y, pred_y))
 
         fpr, tpr, threshold = metrics.roc_curve(y, pred_y)
         roc_auc = metrics.auc(fpr, tpr)
+        # print(roc_auc)
+        # fig, axes = plt.subplots(1, 2)
+        # axes[0].scatter(X, pred_y)
+        # pred_y = softmax(pred_y)
+        # axes[1].scatter(X, pred_y)
+        # plt.show()
         if roc_auc > highest_roc_auc:
             highest_roc_auc = roc_auc
             highest_fpr = fpr
             highest_tpr = tpr
+            highest_threshold = cur_emd
+
+    roc_per_user.append(highest_roc_auc)
+
+    print(highest_threshold)
 
     plt.plot(highest_fpr, highest_tpr, 'b', label = 'AUC = %0.2f' % highest_roc_auc)
     plt.legend(loc = 'lower right')
@@ -76,5 +91,4 @@ for user in os.listdir(data_path):
     plt.xlabel('False Positive Rate')
     plt.show()
 
-    plt.plot(emds, accs)
-    plt.show()
+print(np.mean(np.array(roc_per_user)), np.std(np.array(roc_per_user)))

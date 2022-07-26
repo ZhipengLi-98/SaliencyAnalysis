@@ -14,10 +14,8 @@ data_path = "./data"
 
 files = []
 for user in os.listdir(data_path):
-    user = "zz"
     for condition in os.listdir(os.path.join(data_path, user)):
         files.append(pd.read_csv(os.path.join(data_path, user, condition)))
-    break
 
 df = pd.concat(files)
 
@@ -33,11 +31,11 @@ y = test['label']
 
 print(len(X))
 
-fig, axes = plt.subplots(1, 1)
-axes.hist(class_0['emd'])
-axes.hist(class_1_over['emd'])
-plt.show()
-exit()
+# fig, axes = plt.subplots(1, 1)
+# axes.hist(class_0['emd'])
+# axes.hist(class_1_over['emd'])
+# plt.show()
+# exit()
 
 X = X.values.reshape(-1, 1)
 
@@ -47,7 +45,8 @@ X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_
 # scores = cross_val_score(clf, X, y, cv=5)
 # print(np.mean(scores))
 
-clf = LogisticRegression(random_state=0)
+# clf = LogisticRegression(random_state=0)
+clf = svm.SVC(probability=True)
 clf.fit(X_train, y_train)
 # scores = cross_val_score(clf, X, y, cv=5)
 # print(np.mean(scores))
