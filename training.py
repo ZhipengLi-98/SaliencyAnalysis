@@ -8,12 +8,18 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import cross_val_score
 import numpy as np
 import sklearn.metrics as metrics
+import os
 
 # fig, axes = plt.subplots(1, 1)
 
-df_con = pd.read_csv("./data_con.csv")
-df_gaze = pd.read_csv("./data_gaze.csv")
-df = pd.concat([df_con, df_gaze])
+data_path = "./data"
+
+files = []
+for user in os.listdir(data_path):
+    for condition in os.listdir(os.path.join(data_path, user)):
+        files.append(pd.read_csv(os.path.join(data_path, user, condition)))
+
+df = pd.concat(files)
 
 class_0 = df[df['label'] == 0]
 class_1 = df[df['label'] == 1]
@@ -22,8 +28,8 @@ class_1_over = class_1.sample(class_count_0, replace=True)
 
 test = pd.concat([class_1_over, class_0], axis=0)
 
-X = df['emd']
-y = df['label']
+X = test['emd']
+y = test['label']
 
 print(len(X))
 

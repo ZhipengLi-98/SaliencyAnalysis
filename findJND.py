@@ -8,12 +8,25 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import cross_val_score
 import numpy as np
 import sklearn.metrics as metrics
+import os
+import torch
+from torch import nn
 
 # fig, axes = plt.subplots(1, 1)
 
-df_con = pd.read_csv("./data_con.csv")
-df_gaze = pd.read_csv("./data_gaze.csv")
-df = pd.concat([df_con, df_gaze])
+data_path = "./data"
+
+files = []
+for user in os.listdir(data_path):
+    user = "crj"
+    print(user)
+    for condition in os.listdir(os.path.join(data_path, user)):
+        if "con" not in condition:
+            continue
+        files.append(pd.read_csv(os.path.join(data_path, user, condition)))
+    break
+
+df = pd.concat(files)
 
 class_0 = df[df['label'] == 0]
 class_1 = df[df['label'] == 1]
@@ -25,14 +38,26 @@ test = pd.concat([class_1_over, class_0], axis=0)
 X = test['emd']
 y = test['label']
 
+print(len(X))
+
+rnn = nn.LSTM(1, 20, 2)
+input = np.array(X).reshape(-1, 1)
+h0 = torch.randn(2, 20)
+c0 = torch.randn(2, 20)
+output, (hn, cn) = rnn(input, (h0, c0))
+
 min_emd = np.min(X)
 max_emd = np.max(X)
 
 emds = []
 accs = []
 
-for i in range(100):
-    cur_emd = (max_emd - min_emd) * i / 100 + min_emd
+highest_roc_auc = 0
+highest_fpr = 0
+highest_tpr = 0
+
+for i in range(1000):
+    cur_emd = (max_emd - min_emd) * i / 1000 + min_emd
     pred_y = []
     for x, y_true in zip(X, y):
         if x < cur_emd:
@@ -42,6 +67,21 @@ for i in range(100):
     emds.append(cur_emd)
     accs.append(metrics.accuracy_score(y, pred_y))
 
-plt.plot(emds, accs)
+    fpr, tpr, threshold = metrics.roc_curve(y, pred_y)
+    roc_auc = metrics.auc(fpr, tpr)
+    if roc_auc > highest_roc_auc:
+        highest_roc_auc = roc_auc
+        highest_fpr = fpr
+        highest_tpr = tpr
+
+plt.plot(highest_fpr, highest_tpr, 'b', label = 'AUC = %0.2f' % highest_roc_auc)
+plt.legend(loc = 'lower right')
+plt.plot([0, 1], [0, 1],'r--')
+plt.xlim([0, 1])
+plt.ylim([0, 1])
+plt.ylabel('True Positive Rate')
+plt.xlabel('False Positive Rate')
 plt.show()
 
+plt.plot(emds, accs)
+plt.show()

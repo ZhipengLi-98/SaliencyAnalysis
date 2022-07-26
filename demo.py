@@ -10,40 +10,6 @@ from scipy.ndimage import gaussian_filter
 aug_path = "./augs"
 sal_path = "./saliency"
 
-def blur_image(image):
-    blurred_img = gaussian_filter(image, sigma=7)  # sigma=7,
-
-    min_img = np.min(blurred_img)
-    max_img = np.max(blurred_img)
-
-    norm_value = max_img - min_img
-
-    if max_img > 0 and norm_value > 0:
-        blurred_img = (blurred_img - min_img) / (norm_value) * 255.
-
-    # print(str(min_img) + ' ' + str(max_img) + ' ' + str(np.min(blurred_img)) + '  ' + str(np.max(blurred_img)))
-
-        # blurred_img = gaussian_filter(map, sigma=2)  # sigma=7,
-        # blurred_img2 = gaussian_filter(map, sigma=10)
-        # blurred_img = cv2.addWeighted(blurred_img, 0.2, blurred_img2, 1.5, 0)
-    return blurred_img
-
-def sliced_wasserstein(X, Y, num_proj):
-    dim = X.shape[1]
-    ests = []
-    for _ in range(num_proj):
-        # sample uniformly from the unit sphere
-        dir = np.random.rand(dim)
-        dir /= np.linalg.norm(dir)
-
-        # project the data
-        X_proj = X @ dir
-        Y_proj = Y @ dir
-
-        # compute 1d wasserstein
-        ests.append(wasserstein_distance(X_proj, Y_proj))
-    return np.mean(ests)
-
 def get_signature_from_heatmap(hm):
     nr = hm.shape[0]
     nc = hm.shape[1]
@@ -62,19 +28,23 @@ def get_signature_from_heatmap(hm):
     if sum_hm < 0.0001:
         return None
 
-    sig[:, 0] /= np.sum(sig[:, 0])
+    # sig[:, 0] /= np.sum(sig[:, 0])
     # print sig
     return sig
 
+idx = []
+xs = []
+ys = []
 for user in os.listdir(aug_path):
     user = "crj"
     print(user)
     for condition in os.listdir(os.path.join(aug_path, user)):
-        if "con" not in condition:
+        if "res_con" not in condition:
             continue
         print(condition)
         for imgs in tqdm(os.listdir(os.path.join(aug_path, user, condition))):
-            imgs = "3621.png"
+            imgs = "5554.png"
+            # print(imgs)
             img = cv2.imread(os.path.join(aug_path, user, condition, imgs))
             gray = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
             ret, binary = cv2.threshold(gray, 20, 255, cv2.THRESH_BINARY)
@@ -86,7 +56,7 @@ for user in os.listdir(aug_path):
             aug_dis = np.zeros((img.shape[0], img.shape[1], 1), np.float32)
             if len(contours) == 0:
                 # no augmentation
-                pass
+                continue
             else:
                 outline = contours[0]
                 if len(contours) > 1:
@@ -108,48 +78,44 @@ for user in os.listdir(aug_path):
                         print(imgs, np.mean(np.mean(innerpoints[:, 2])))
                         label = 1
                 
-                    noise_point = np.random.multivariate_normal([np.mean(innerpoints[:, 0]), np.mean(innerpoints[:, 1])], [[np.std(innerpoints[:, 0]), 0], [0, np.std(innerpoints[:, 1])]], 1000)
+                    noise_point = np.random.multivariate_normal([np.mean(innerpoints[:, 0]), np.mean(innerpoints[:, 1])], [[np.std(innerpoints[:, 0]), 0], [0, np.std(innerpoints[:, 1])]], 10000)
                     for point in noise_point:
-                        aug_dis[int(point[0]), int(point[1])] += 1 / 1000 * 255
+                        if int(point[0]) < 224 and int(point[1]) < 384:
+                            aug_dis[int(point[0]), int(point[1])] += 1 / 10000 * 255
 
             sal_img = cv2.imread(os.path.join(sal_path, user, condition.split("aug")[0] + "all.mp4", imgs), cv2.IMREAD_GRAYSCALE).astype(dtype=np.float32)
-
-            aug_blurred = blur_image(gray)
-            sal_img_resize = cv2.resize(sal_img, (38, 22), interpolation=cv2.INTER_LANCZOS4)
+            
+            sal_img_resize = cv2.resize(sal_img, (76, 44), interpolation=cv2.INTER_LANCZOS4)
             # sal_img_resize /= np.sum(sal_img_resize)
-            aug_resize = cv2.resize(aug_dis, (38, 22), interpolation=cv2.INTER_LANCZOS4)
+            aug_resize = cv2.resize(aug_dis, (76, 44), interpolation=cv2.INTER_LANCZOS4)
             # aug_resize /= np.sum(aug_resize)
-
-            print(np.sum(aug_dis))
-            print(np.sum(aug_resize))
-            print(np.sum(sal_img))
-            print(np.sum(sal_img_resize))
+            
             sal_flat = get_signature_from_heatmap(sal_img_resize)
             aug_flat = get_signature_from_heatmap(aug_resize)
-            print(np.sum(sal_flat[:, 0]))
+            sal_flat[:, 0] *= np.sum(aug_flat[:, 0]) / np.sum(sal_flat[:, 0])
+            emd = 0
             emd, lowerbound, flow_matrix = cv2.EMD(sal_flat, aug_flat, distType=cv2.DIST_L2, lowerBound=0)
-
             print(emd)
             exit()
 
-            if label == 0:
-                print(imgs)
-                print(np.sum(sal_flat[:, 0]))
-                print(emd / np.sum(sal_flat[:, 0]))
-                cv2.imwrite("saliency.png", sal_img)
-                cv2.imwrite("saliency_resize.png", sal_img_resize)
-                cv2.imwrite("aug.png", aug_dis)
-                cv2.imwrite("aug_resize.png", aug_resize)
-                cv2.imshow("saliency", sal_img)
-                cv2.waitKey(0)
-                cv2.imshow("saliency", sal_img_resize)
-                cv2.waitKey(0)
-                cv2.imshow("augmentation", aug_dis)
-                cv2.waitKey(0)
-                cv2.imshow("augmentation", aug_resize)
-                cv2.waitKey(0)
-
-            exit()
-
+            aug_dis = aug_dis.astype(dtype=np.float32) * 255.0
+            aug_resize = aug_resize.astype(dtype=np.float32) * 255.0
+            # print(emd)
+            if len(innerpoints) == 0 or np.isnan(emd):
+                pass
+            else:
+                xs.append(emd)
+                idx.append(imgs)
+                ys.append(label)
+                
+            # if label == 0:
+            #     print(imgs)
+            #     cv2.imwrite("saliency.png", sal_img)
+            #     cv2.imwrite("saliency_resize.png", sal_img_resize)
+            #     cv2.imwrite("aug.png", aug_dis)
+            #     cv2.imwrite("aug_resize.png", aug_resize)
             
-            
+        
+        df = pd.DataFrame({"name": idx, "emd": xs, "label": ys})
+        df.to_csv("./data_{}_{}.csv".format(condition, user))
+        exit()
