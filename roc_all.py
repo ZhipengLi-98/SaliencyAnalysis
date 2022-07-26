@@ -20,6 +20,8 @@ data_path = "./data"
 
 files = []
 for user in os.listdir(data_path):
+    if "DS_Store" in user:
+        continue
     print(user)
     for condition in os.listdir(os.path.join(data_path, user)):
         files.append(pd.read_csv(os.path.join(data_path, user, condition)))
@@ -37,8 +39,8 @@ test = pd.concat([class_1_over, class_0], axis=0)
 
 const_emd = math.sqrt(16 * 16 + 12 * 12)
 
-X = df['emd']
-y = df['label']
+X = test['emd']
+y = test['label']
 
 print(len(X))
 
@@ -54,43 +56,58 @@ for j in range(5):
     highest_tpr = 0
     highest_threshold = 0
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.25)
+    emds = []
+    accs = []
     for i in range(100):
         cur_emd = (max_emd - min_emd) * i / 100 + min_emd
+        bin_pred_y = []
         pred_y = []
         for x, y_true in zip(X_train, y_train):
             if x < cur_emd:
+                bin_pred_y.append(1)
                 pred_y.append((cur_emd - x) / (cur_emd - min_emd))
             else:
+                bin_pred_y.append(0)
                 pred_y.append((cur_emd - x) / (max_emd - cur_emd))
         # pred_y = softmax(pred_y)
+        emds.append(cur_emd)
+        accs.append(metrics.accuracy_score(y_train, bin_pred_y))
+        
         fpr, tpr, threshold = metrics.roc_curve(y_train, pred_y)
         roc_auc = metrics.auc(fpr, tpr)
-        if roc_auc > highest_roc_auc:
-            highest_roc_auc = roc_auc
+        if metrics.accuracy_score(y_train, bin_pred_y) > highest_roc_auc:
+            highest_roc_auc = metrics.accuracy_score(y_train, bin_pred_y)
             highest_fpr = fpr
             highest_tpr = tpr
             highest_threshold = cur_emd
-
+    print(highest_roc_auc, highest_threshold)
     pred_y = []
+    bin_pred_y = []
     for x, y_true in zip(X_test, y_test):
         if x < highest_threshold:
+            bin_pred_y.append(1)
             pred_y.append((cur_emd - x) / (cur_emd - min_emd))
         else:
+            bin_pred_y.append(1)
             pred_y.append((cur_emd - x) / (max_emd - cur_emd))
     # pred_y = softmax(pred_y)
-    fpr, tpr, threshold = metrics.roc_curve(y_test, pred_y)
-    roc_auc = metrics.auc(fpr, tpr)
-    roc_cross_valid.append(roc_auc)
+    print(metrics.accuracy_score(y_test, bin_pred_y))
+    # fpr, tpr, threshold = metrics.roc_curve(y_test, pred_y)
+    # roc_auc = metrics.auc(fpr, tpr)
+    # roc_cross_valid.append(roc_auc)
 
-    print(highest_threshold)
+    # print(highest_threshold)
 
-    plt.plot(highest_fpr, highest_tpr, 'b', label = 'AUC = %0.2f' % highest_roc_auc)
-    plt.legend(loc = 'lower right')
-    plt.plot([0, 1], [0, 1],'r--')
-    plt.xlim([0, 1])
-    plt.ylim([0, 1])
-    plt.ylabel('True Positive Rate')
-    plt.xlabel('False Positive Rate')
+    # plt.plot(highest_fpr, highest_tpr, 'b', label = 'AUC = %0.2f' % highest_roc_auc)
+    # plt.legend(loc = 'lower right')
+    # plt.plot([0, 1], [0, 1],'r--')
+    # plt.xlim([0, 1])
+    # plt.ylim([0, 1])
+    # plt.ylabel('True Positive Rate')
+    # plt.xlabel('False Positive Rate')
+    # plt.show()
+
+    plt.plot(emds, accs)
     plt.show()
 
 print(np.mean(np.array(roc_cross_valid)), np.std(np.array(roc_cross_valid)))

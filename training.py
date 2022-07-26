@@ -14,7 +14,7 @@ data_path = "./data"
 
 files = []
 for user in os.listdir(data_path):
-    if user == "zxyx" or user == "crj":
+    if "DS_Store" in user:
         continue
     for condition in os.listdir(os.path.join(data_path, user)):
         files.append(pd.read_csv(os.path.join(data_path, user, condition)))
@@ -33,11 +33,15 @@ y = df['label']
 
 print(len(X))
 
-# fig, axes = plt.subplots(1, 1)
-# axes.hist(class_0['emd'])
-# axes.hist(class_1_over['emd'])
-# plt.show()
-# exit()
+fig, axes = plt.subplots(1, 2)
+axes[0].hist(class_0['emd'], bins=100)
+axes[1].hist(class_1['emd'], color="#ff7f0e", bins=100)
+axes[0].set_xlabel("EMD")
+axes[0].set_ylabel("Number of frames")
+axes[1].set_xlabel("EMD")
+axes[1].set_ylabel("Number of frames")
+plt.show()
+exit()
 
 X = X.values.reshape(-1, 1)
 
