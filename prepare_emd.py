@@ -80,7 +80,7 @@ def run_con(user, condition, images):
 
             sal_img = cv2.imread(os.path.join(sal_path, user, condition.split("aug")[0] + "all.mp4", imgs), cv2.IMREAD_GRAYSCALE).astype(dtype=np.float32)
             
-            aug_dis = gaussian_filter(binary, sigma=7)
+            aug_dis = gaussian_filter(binary, sigma=5)
             aug_dis = (aug_dis - np.min(aug_dis)) / (np.max(aug_dis) - np.min(aug_dis)) * 255.0
 
             sal_img_resize = cv2.resize(sal_img, (16, 12), interpolation=cv2.INTER_LANCZOS4)
@@ -159,7 +159,7 @@ def run_gaze(user, condition, images):
 
             sal_img = cv2.imread(os.path.join(sal_path, user, condition.split("aug")[0] + "all.mp4", imgs), cv2.IMREAD_GRAYSCALE).astype(dtype=np.float32)
             
-            aug_dis = gaussian_filter(binary, sigma=7)
+            aug_dis = gaussian_filter(binary, sigma=5)
             aug_dis = (aug_dis - np.min(aug_dis)) / (np.max(aug_dis) - np.min(aug_dis)) * 255.0
 
             sal_img_resize = cv2.resize(sal_img, (16, 12), interpolation=cv2.INTER_LANCZOS4)
@@ -201,7 +201,7 @@ def run_gaze(user, condition, images):
     df.to_csv("./data_{}_{}_{}.csv".format(condition.split("_")[1], condition.split("_")[2], user))
 
 for user in os.listdir(aug_path):
-    user = "zz"
+    user = "zxyx"
     for condition in os.listdir(os.path.join(aug_path, user)):
         images = sorted(os.listdir(os.path.join(aug_path, user, condition)))
         if "gaze" in condition:

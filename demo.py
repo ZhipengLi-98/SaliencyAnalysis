@@ -28,7 +28,7 @@ def get_signature_from_heatmap(hm):
     if sum_hm < 0.0001:
         return None
 
-    # sig[:, 0] /= np.sum(sig[:, 0])
+    sig[:, 0] /= np.sum(sig[:, 0])
     # print sig
     return sig
 
@@ -43,7 +43,7 @@ for user in os.listdir(aug_path):
             continue
         print(condition)
         for imgs in tqdm(os.listdir(os.path.join(aug_path, user, condition))):
-            imgs = "5554.png"
+            imgs = "5558.png"
             # print(imgs)
             img = cv2.imread(os.path.join(aug_path, user, condition, imgs))
             gray = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
@@ -85,18 +85,21 @@ for user in os.listdir(aug_path):
 
             sal_img = cv2.imread(os.path.join(sal_path, user, condition.split("aug")[0] + "all.mp4", imgs), cv2.IMREAD_GRAYSCALE).astype(dtype=np.float32)
             
-            sal_img_resize = cv2.resize(sal_img, (76, 44), interpolation=cv2.INTER_LANCZOS4)
-            # sal_img_resize /= np.sum(sal_img_resize)
-            aug_resize = cv2.resize(aug_dis, (76, 44), interpolation=cv2.INTER_LANCZOS4)
-            # aug_resize /= np.sum(aug_resize)
+            # aug_dis = gaussian_filter(binary, sigma=5)
+            # aug_dis = (aug_dis - np.min(aug_dis)) / (np.max(aug_dis) - np.min(aug_dis)) * 255.0
+
+            sal_img_resize = cv2.resize(sal_img, (16, 12), interpolation=cv2.INTER_LANCZOS4)
+            aug_resize = cv2.resize(aug_dis, (16, 12), interpolation=cv2.INTER_LANCZOS4)
+
+            # sal_img_resize = cv2.resize(sal_img, (76, 44), interpolation=cv2.INTER_LANCZOS4)
+            # aug_resize = cv2.resize(aug_dis, (76, 44), interpolation=cv2.INTER_LANCZOS4)
             
             sal_flat = get_signature_from_heatmap(sal_img_resize)
             aug_flat = get_signature_from_heatmap(aug_resize)
-            sal_flat[:, 0] *= np.sum(aug_flat[:, 0]) / np.sum(sal_flat[:, 0])
+            
             emd = 0
             emd, lowerbound, flow_matrix = cv2.EMD(sal_flat, aug_flat, distType=cv2.DIST_L2, lowerBound=0)
             print(emd)
-            exit()
 
             aug_dis = aug_dis.astype(dtype=np.float32) * 255.0
             aug_resize = aug_resize.astype(dtype=np.float32) * 255.0
@@ -108,12 +111,13 @@ for user in os.listdir(aug_path):
                 idx.append(imgs)
                 ys.append(label)
                 
-            # if label == 0:
-            #     print(imgs)
-            #     cv2.imwrite("saliency.png", sal_img)
-            #     cv2.imwrite("saliency_resize.png", sal_img_resize)
-            #     cv2.imwrite("aug.png", aug_dis)
-            #     cv2.imwrite("aug_resize.png", aug_resize)
+            if label == 1:
+                print(imgs)
+                cv2.imwrite("saliency.png", sal_img)
+                cv2.imwrite("saliency_resize.png", sal_img_resize)
+                cv2.imwrite("aug.png", aug_dis)
+                cv2.imwrite("aug_resize.png", aug_resize)
+                exit()
             
         
         df = pd.DataFrame({"name": idx, "emd": xs, "label": ys})
