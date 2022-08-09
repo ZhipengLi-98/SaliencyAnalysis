@@ -26,7 +26,7 @@ def get_signature_from_heatmap(hm):
     if sum_hm < 0.0001:
         return None
 
-    sig[:, 0] /= np.sum(sig[:, 0])
+    # sig[:, 0] /= np.sum(sig[:, 0])
     # print sig
     return sig
 

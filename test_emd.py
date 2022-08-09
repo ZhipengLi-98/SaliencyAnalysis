@@ -69,9 +69,9 @@ first[0, 0] = 1
 first[2, 2] = 1
 second = np.zeros((3, 3))
 # second[75, 43, 0] = 0.1
-second[1, 1] = 1
+second[2, 2] = 1
 
-print(sliced_wasserstein(first, second, 100))
+# print(sliced_wasserstein(first, second, 100))
 
 first_sig = get_signature_from_heatmap(first)
 second_sig = get_signature_from_heatmap(second)
