@@ -180,6 +180,7 @@ def run_gaze(user, condition, images):
             if len(innerpoints) == 0 or np.isnan(emd):
                 pass
             else:
+                # Bug: do not consider the last one arrays
                 if label == 0:
                     temp_x.append(emd)
                     temp_idx.append(imgs)

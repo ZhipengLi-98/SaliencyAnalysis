@@ -70,7 +70,6 @@ for condition in os.listdir(os.path.join(aug_path, user)):
             sample.append(sal_img)
         X.append(sample)
         y.append(label)
-        break
 
 X = np.array(X)
 X = X.reshape(-1, n_frames, 224, 384, 1)

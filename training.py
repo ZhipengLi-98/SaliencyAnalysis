@@ -28,8 +28,8 @@ class_1_over = class_1.sample(class_count_0, replace=True)
 
 test = pd.concat([class_1_over, class_0], axis=0)
 
-X = df['emd']
-y = df['label']
+X = test['emd']
+y = test['label']
 
 print(len(X))
 
