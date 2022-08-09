@@ -1,5 +1,6 @@
 import os
 from re import U
+from tkinter.tix import Y_REGION
 from tqdm import tqdm
 import cv2
 import numpy as np
@@ -15,11 +16,13 @@ from sklearn.model_selection import train_test_split
 aug_path = "./augs"
 sal_path = "./saliency"
 
-X = []
-y = []
-temp_y = []
+Xs = {}
+ys = {}
 
 for user in os.listdir(aug_path):
+    X = []
+    y = []
+    temp_y = []
     for condition in os.listdir(os.path.join(aug_path, user)):
         print(user, condition)
         images = sorted(os.listdir(os.path.join(aug_path, user, condition)))
@@ -38,7 +41,7 @@ for user in os.listdir(aug_path):
                 sal_img = np.maximum(sal_img, aug_dis)
                 sal_img = sal_img / 255.0
                 sal_img = sal_img.reshape(224, 384, 1)
-                sal_img_resize = cv2.resize(sal_img, (16, 12), interpolation=cv2.INTER_LANCZOS4)
+                sal_img_resize = cv2.resize(sal_img, (40, 24), interpolation=cv2.INTER_LANCZOS4)
                 X.append(sal_img_resize)
                 cur_y = np.zeros(2)
                 cur_y[label] = 1
@@ -46,37 +49,51 @@ for user in os.listdir(aug_path):
                 temp_y.append(label)
             except:
                 pass
+    
+    df = pd.DataFrame({"img": X, "label": y, "temp_label": temp_y})
+    class_0 = df[df['temp_label'] == 0]
+    class_1 = df[df['temp_label'] == 1]
+    class_count_0, class_count_1 = df['temp_label'].value_counts()
+    class_1_over = class_1.sample(class_count_0, replace=True)
 
-df = pd.DataFrame({"img": X, "label": y, "temp_label": temp_y})
-class_0 = df[df['temp_label'] == 0]
-class_1 = df[df['temp_label'] == 1]
-class_count_0, class_count_1 = df['temp_label'].value_counts()
-class_1_over = class_1.sample(class_count_0, replace=True)
+    test = pd.concat([class_1_over, class_0], axis=0)
 
-test = pd.concat([class_1_over, class_0], axis=0)
+    X = test['img'].tolist()
+    y = test['label'].tolist()
 
-X = test['img'].tolist()
-y = test['label'].tolist()
+    X = np.array(X)
+    y = np.array(y)
 
-X = np.array(X)
-y = np.array(y)
+    X = X.reshape(-1, 24, 40, 1)
+    y = y.reshape(-1, 2)
 
-X = X.reshape(-1, 12, 16, 1)
-y = y.reshape(-1, 2)
+    Xs[user] = X
+    ys[user] = y
 
-model = Sequential()
-#add model layers
-model.add(Conv2D(64, kernel_size=3, activation="relu", input_shape=(12, 16, 1)))
-model.add(Conv2D(32, kernel_size=3, activation="relu"))
-model.add(Flatten())
-model.add(Dense(2, activation="softmax"))
+for test_user in os.listdir(aug_path):
+    print(test_user)
+    X_train = []
+    y_train = []
+    for user in os.listdir(aug_path):
+        if user != test_user:
+            X_train.append(Xs[user])
+            y_train.append(ys[user])
+    X_train = np.concatenate(X_train).reshape(-1, 24, 40, 1)
+    y_train = np.concatenate(y_train).reshape(-1, 2)
+    X_test = np.array(Xs[test_user]).reshape(-1, 24, 40, 1)
+    y_test = np.array(ys[test_user]).reshape(-1, 2)
 
-#compile model using accuracy to measure model performance
-model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
+    model = Sequential()
+    #add model layers
+    model.add(Conv2D(64, kernel_size=3, activation="relu", input_shape=(24, 40, 1)))
+    model.add(Conv2D(32, kernel_size=3, activation="relu"))
+    model.add(Flatten())
+    model.add(Dense(2, activation="softmax"))
 
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.33, random_state=42)
+    #compile model using accuracy to measure model performance
+    model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
 
-#train the model
-model.fit(X_train, y_train, validation_data=(X_test, y_test), epochs=3)
+    #train the model
+    model.fit(X_train, y_train, validation_data=(X_test, y_test), epochs=3)
 
-model.save("cnn.h5")
+# model.save("cnn.h5")
