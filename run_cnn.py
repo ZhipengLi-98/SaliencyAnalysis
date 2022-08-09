@@ -42,6 +42,12 @@ for user in os.listdir(aug_path):
                 sal_img = sal_img / 255.0
                 sal_img = sal_img.reshape(224, 384, 1)
                 sal_img_resize = cv2.resize(sal_img, (40, 24), interpolation=cv2.INTER_LANCZOS4)
+
+                # cv2.imshow("test", sal_img_resize)
+                # cv2.imwrite("overlap.png", sal_img_resize)
+                # cv2.waitKey()
+                # exit()
+
                 X.append(sal_img_resize)
                 cur_y = np.zeros(2)
                 cur_y[label] = 1
