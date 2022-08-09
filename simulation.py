@@ -14,31 +14,33 @@ for user in os.listdir(imgs_path):
         print(condition)
         for folder in os.listdir(os.path.join(imgs_path, user, condition)):
             if folder.split("_")[-1].split(".")[0] == "all":
-                images = sorted(os.listdir(os.path.join(imgs_path, user, condition, folder)))
+                images =os.listdir(os.path.join(imgs_path, user, condition, folder))
                 i = 0
                 for img_name in images:
-                    print(img_name)
                     img = cv2.imread(os.path.join(imgs_path, user, condition, folder, img_name))
-                    print(img.shape)
                     white = np.zeros((img.shape[0], img.shape[1], 1), np.float32)
-                    image = cv2.circle(img, (420, 310), 20 + i, (255, 255, 255), -1)
-                    cv2.imwrite("./generate/1/{}_{}".format(i, img_name), image)
-                    image = cv2.circle(white, (420, 310), 20 + i, (255, 255, 255), -1)
+                    # image = cv2.circle(img, (420, 310), 20 + i, (255, 255, 255), -1)
+                    # image = cv2.circle(img, (620, 510), 20 + i, (255, 255, 255), -1)
+                    image = cv2.circle(img, (520, 410), 20 + i, (255, 255, 255), -1)
+                    cv2.imwrite("./generate/3/{}_{}".format(i, img_name), image)
+                    # image = cv2.circle(white, (420, 310), 20 + i, (255, 255, 255), -1)
+                    # image = cv2.circle(white, (620, 510), 20 + i, (255, 255, 255), -1)
+                    image = cv2.circle(white, (520, 410), 20 + i, (255, 255, 255), -1)
                     aug_dis = gaussian_filter(image, sigma=5)
                     aug_dis = (aug_dis - np.min(aug_dis)) / (np.max(aug_dis) - np.min(aug_dis)) * 255.0
-                    cv2.imwrite("./gen_aug/1/{}_{}".format(i, img_name), image)
+                    cv2.imwrite("./gen_aug/3/{}_{}".format(i, img_name), image)
                     i += 1
                     if i > 80:
                         break
         break
     break
 
-input_path = "./generate/1/"
-output_path = "./gen_saliency/1/"
+input_path = "./generate/3/"
+output_path = "./gen_saliency/3/"
 
 main(input_path, output_path)
 
-aug_path = "./gen_aug/1/"
+aug_path = "./gen_aug/3/"
 for imgs in os.listdir(aug_path):
     aug_dis = cv2.imread(os.path.join(aug_path, imgs))
     aug_dis = cv2.cvtColor(aug_dis, cv2.COLOR_RGB2GRAY)
