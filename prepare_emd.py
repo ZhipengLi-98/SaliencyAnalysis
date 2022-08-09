@@ -201,15 +201,16 @@ def run_gaze(user, condition, images):
     df = pd.DataFrame({"name": idx, "emd": xs, "label": ys})
     df.to_csv("./data_{}_{}_{}.csv".format(condition.split("_")[1], condition.split("_")[2], user))
 
-for user in os.listdir(aug_path):
-    user = "zxyx"
-    for condition in os.listdir(os.path.join(aug_path, user)):
-        images = sorted(os.listdir(os.path.join(aug_path, user, condition)))
-        if "gaze" in condition:
-            run_gaze(user, condition, images)
-        else:
-            run_con(user, condition, images)
-    break
+if __name__ == "__main__":
+    for user in os.listdir(aug_path):
+        user = "zxyx"
+        for condition in os.listdir(os.path.join(aug_path, user)):
+            images = sorted(os.listdir(os.path.join(aug_path, user, condition)))
+            if "gaze" in condition:
+                run_gaze(user, condition, images)
+            else:
+                run_con(user, condition, images)
+        break
 
 # class myThread (threading.Thread):
 #     def __init__(self, user, condition, images):
