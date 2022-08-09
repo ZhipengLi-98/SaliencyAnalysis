@@ -1,5 +1,5 @@
 import os
-from re import U
+from re import L, U
 from tkinter.tix import Y_REGION
 from tqdm import tqdm
 import cv2
@@ -8,7 +8,7 @@ import pandas as pd
 from scipy.ndimage import gaussian_filter
 
 import keras
-from keras.layers import Dense, LSTM, Flatten, TimeDistributed, Conv2D, Dropout
+from keras.layers import Dense, LSTM, Flatten, TimeDistributed, Conv2D, Dropout, MaxPool2D
 from keras import Sequential
 from keras.applications.vgg16 import VGG16
 from sklearn.model_selection import train_test_split
@@ -84,16 +84,31 @@ for test_user in os.listdir(aug_path):
     y_test = np.array(ys[test_user]).reshape(-1, 2)
 
     model = Sequential()
-    #add model layers
-    model.add(Conv2D(64, kernel_size=3, activation="relu", input_shape=(24, 40, 1)))
-    model.add(Conv2D(32, kernel_size=3, activation="relu"))
+    
+    model.add(Conv2D(32, kernel_size=5, activation="relu", input_shape=(24, 40, 1)))
+    model.add(Conv2D(32, kernel_size=5, activation="relu"))
+    model.add(MaxPool2D(pool_size=(2,2)))
+    model.add(Dropout(0.25))
+
+    model.add(Conv2D(64, kernel_size=3, activation="relu"))
+    model.add(Conv2D(64, kernel_size=3, activation="relu"))
+    model.add(MaxPool2D(pool_size=(2,2), strides=(2,2)))
+    model.add(Dropout(0.25))
+
     model.add(Flatten())
+    model.add(Dense(128, activation = "relu"))
+    model.add(Dropout(0.5))
     model.add(Dense(2, activation="softmax"))
 
-    #compile model using accuracy to measure model performance
     model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
 
     #train the model
     model.fit(X_train, y_train, validation_data=(X_test, y_test), epochs=3)
+    
+    # import visualkeras
+    # from PIL import ImageFont
+
+    # font = ImageFont.truetype("arial.ttf", 15)  # using comic sans is strictly prohibited!
+    # visualkeras.layered_view(model, to_file='output.png', legend=True, font=font).show() # write and show
 
 # model.save("cnn.h5")
