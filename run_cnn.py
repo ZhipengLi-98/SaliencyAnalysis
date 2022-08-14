@@ -1,11 +1,10 @@
 import os
-from re import L, U
-from tkinter.tix import Y_REGION
 from tqdm import tqdm
 import cv2
 import numpy as np
 import pandas as pd
 from scipy.ndimage import gaussian_filter
+from random import random
 
 import keras
 from keras.layers import Dense, LSTM, Flatten, TimeDistributed, Conv2D, Dropout, MaxPool2D
@@ -37,13 +36,19 @@ for user in os.listdir(aug_path):
 
                 aug_dis = gaussian_filter(binary, sigma=5)
                 aug_dis = (aug_dis - np.min(aug_dis)) / (np.max(aug_dis) - np.min(aug_dis)) * 255.0
+                aug_dis = aug_dis.astype(sal_img.dtype)
+
+                # merge = cv2.merge((aug_dis, sal_img))
+                # merge = merge / 255.0
+                # merge = merge.reshape(224, 384, 2)
+                # merge_resize = cv2.resize(merge, (40, 24), interpolation=cv2.INTER_LANCZOS4)
 
                 sal_img = np.maximum(sal_img, aug_dis)
                 sal_img = sal_img / 255.0
                 sal_img = sal_img.reshape(224, 384, 1)
                 sal_img_resize = cv2.resize(sal_img, (40, 24), interpolation=cv2.INTER_LANCZOS4)
 
-                # cv2.imshow("test", sal_img_resize)
+                # cv2.imshow("test", merge)
                 # cv2.imwrite("overlap.png", sal_img_resize)
                 # cv2.waitKey()
                 # exit()
@@ -80,14 +85,32 @@ for test_user in os.listdir(aug_path):
     print(test_user)
     X_train = []
     y_train = []
+    X_test = []
+    y_test = []
     for user in os.listdir(aug_path):
-        if user != test_user:
-            X_train.append(Xs[user])
-            y_train.append(ys[user])
-    X_train = np.concatenate(X_train).reshape(-1, 24, 40, 1)
-    y_train = np.concatenate(y_train).reshape(-1, 2)
-    X_test = np.array(Xs[test_user]).reshape(-1, 24, 40, 1)
-    y_test = np.array(ys[test_user]).reshape(-1, 2)
+        if user != test_user and user in Xs.keys():
+            X_train.extend(Xs[user])
+            y_train.extend(ys[user])
+
+    
+    train_test_length = int(len(Xs[test_user]) / 10)
+    X_train.extend(Xs[test_user][:train_test_length])
+    y_train.extend(ys[test_user][:train_test_length])
+    X_test.extend(Xs[test_user][train_test_length:])
+    y_test.extend(ys[test_user][train_test_length:])
+
+    # for i in range(len(Xs[test_user])):
+    #     if random() > 0.9:
+    #         X_train.append(Xs[test_user][i])
+    #         y_train.append(ys[test_user][i])
+    #     else:
+    #         X_test.append(Xs[test_user][i])
+    #         y_test.append(ys[test_user][i])
+
+    X_train = np.array(X_train).reshape(-1, 24, 40, 1)
+    y_train = np.array(y_train).reshape(-1, 2)
+    X_test = np.array(X_test).reshape(-1, 24, 40, 1)
+    y_test = np.array(y_test).reshape(-1, 2)
 
     model = Sequential()
     

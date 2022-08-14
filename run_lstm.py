@@ -1,6 +1,7 @@
 import os
 import pandas as pd
 import numpy as np
+from random import random
 
 from keras.models import Sequential
 from keras.layers import LSTM
@@ -55,15 +56,31 @@ for test_user in os.listdir(aug_path):
     print(test_user)
     X_train = []
     y_train = []
+    X_test = []
+    y_test = []
     for user in os.listdir(aug_path):
         if user != test_user:
             X_train.extend(Xs[user])
             y_train.extend(ys[user])
-    X_test = np.array(Xs[test_user])
-    y_test = np.array(ys[test_user])
+    
+    train_test_length = int(len(Xs[test_user]) / 10)
+    X_train.extend(Xs[test_user][:train_test_length])
+    y_train.extend(ys[test_user][:train_test_length])
+    X_test.extend(Xs[test_user][train_test_length:])
+    y_test.extend(ys[test_user][train_test_length:])
 
+    # for i in range(len(Xs[test_user])):
+    #     if random() > 0.9:
+    #         X_train.append(Xs[test_user][i])
+    #         y_train.append(ys[test_user][i])
+    #     else:
+    #         X_test.append(Xs[test_user][i])
+    #         y_test.append(ys[test_user][i])
+    
     X_train = np.array(X_train).reshape(-1, n_frames, 1)
     y_train = np.array(y_train).reshape(-1, 1, 1)
+    X_test = np.array(X_test).reshape(-1, n_frames, 1)
+    y_test = np.array(y_test).reshape(-1, 1, 1)
 
     print(X_train.shape)
     print(y_train.shape)
