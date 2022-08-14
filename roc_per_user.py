@@ -21,6 +21,7 @@ data_path = "./data"
 roc_per_user = []
 
 for user in os.listdir(data_path):
+    user = "crj"
     print(user)
     files = []
     for condition in os.listdir(os.path.join(data_path, user)):
@@ -37,7 +38,7 @@ for user in os.listdir(data_path):
 
     const_emd = math.sqrt(16 * 16 + 12 * 12)
 
-    X = df['emd']
+    X = df['emd_gaze_aug']
     y = df['label']
 
     print(len(X))
@@ -84,6 +85,7 @@ for user in os.listdir(data_path):
     print(highest_threshold)
 
     plt.plot(highest_fpr, highest_tpr, label = "AUC = %0.2f"% highest_roc_auc)
+    break
 plt.legend(loc = 'lower right')
 plt.plot([0, 1], [0, 1],'r--')
 plt.xlim([0, 1])

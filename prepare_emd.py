@@ -30,12 +30,14 @@ def get_signature_from_heatmap(hm):
     # print sig
     return sig
 
+gaze_path = "./gaze"
 aug_path = "./augs"
 sal_path = "./saliency"
 
 def run_con(user, condition, images):
     idx = []
     xs = []
+    emd_g_a = []
     ys = []
     for imgs in tqdm(images):
         # print(imgs)
@@ -82,17 +84,27 @@ def run_con(user, condition, images):
             
             aug_dis = gaussian_filter(binary, sigma=5)
             aug_dis = (aug_dis - np.min(aug_dis)) / (np.max(aug_dis) - np.min(aug_dis)) * 255.0
+            
+            gaze_img = cv2.imread(os.path.join(gaze_path, user, condition.split("aug")[0] + "gaze.mp4", imgs), cv2.IMREAD_GRAYSCALE).astype(dtype=np.float32)
+            ret, binary_gaze = cv2.threshold(gaze_img, 20, 255, cv2.THRESH_BINARY)
+            gaze_dis = gaussian_filter(binary_gaze, sigma=5)
+            gaze_dis = (gaze_dis - np.min(gaze_dis)) / (np.max(gaze_dis) - np.min(gaze_dis)) * 255.0
 
             sal_img_resize = cv2.resize(sal_img, (16, 12), interpolation=cv2.INTER_LANCZOS4)
             aug_resize = cv2.resize(aug_dis, (16, 12), interpolation=cv2.INTER_LANCZOS4)
+            gaze_resize = cv2.resize(gaze_dis, (16, 12), interpolation=cv2.INTER_LANCZOS4)
+
             # sal_img_resize = cv2.resize(sal_img, (76, 44), interpolation=cv2.INTER_LANCZOS4)
             # aug_resize = cv2.resize(aug_dis, (76, 44), interpolation=cv2.INTER_LANCZOS4)
             
             sal_flat = get_signature_from_heatmap(sal_img_resize)
             aug_flat = get_signature_from_heatmap(aug_resize)
+            gaze_flat = get_signature_from_heatmap(gaze_resize)
             emd = 0
+            emd_gaze_aug = 0
             try:
                 emd, lowerbound, flow_matrix = cv2.EMD(sal_flat, aug_flat, distType=cv2.DIST_L2, lowerBound=0)
+                emd_gaze_aug, lowerbound, flow_matrix = cv2.EMD(gaze_flat, aug_flat, distType=cv2.DIST_L2, lowerBound=0)
             except:
                 print(imgs)
                 continue
@@ -101,20 +113,23 @@ def run_con(user, condition, images):
                 pass
             else:
                 xs.append(emd)
+                emd_g_a.append(emd_gaze_aug)
                 idx.append(imgs)
                 ys.append(label)
         except:
             print(user, condition, imgs)
                 
-    df = pd.DataFrame({"name": idx, "emd": xs, "label": ys})
+    df = pd.DataFrame({"name": idx, "emd": xs, "emd_gaze_aug": emd_g_a, "label": ys})
     df.to_csv("./data_{}_{}_{}.csv".format(condition.split("_")[1], condition.split("_")[2], user))
 
 def run_gaze(user, condition, images):
     idx = []
     xs = []
+    emd_g_a = []
     ys = []    
     temp_x = []
     temp_idx = []
+    temp_emd_g_a = []
     temp_y = []
     for imgs in tqdm(images):
         # print(imgs)
@@ -162,17 +177,26 @@ def run_gaze(user, condition, images):
             aug_dis = gaussian_filter(binary, sigma=5)
             aug_dis = (aug_dis - np.min(aug_dis)) / (np.max(aug_dis) - np.min(aug_dis)) * 255.0
 
+            gaze_img = cv2.imread(os.path.join(gaze_path, user, condition.split("aug")[0] + "gaze.mp4", imgs), cv2.IMREAD_GRAYSCALE).astype(dtype=np.float32)
+            ret, binary_gaze = cv2.threshold(gaze_img, 20, 255, cv2.THRESH_BINARY)
+            gaze_dis = gaussian_filter(binary_gaze, sigma=5)
+            gaze_dis = (gaze_dis - np.min(gaze_dis)) / (np.max(gaze_dis) - np.min(gaze_dis)) * 255.0
+
             sal_img_resize = cv2.resize(sal_img, (16, 12), interpolation=cv2.INTER_LANCZOS4)
             aug_resize = cv2.resize(aug_dis, (16, 12), interpolation=cv2.INTER_LANCZOS4)
+            gaze_resize = cv2.resize(gaze_dis, (16, 12), interpolation=cv2.INTER_LANCZOS4)
 
             # sal_img_resize = cv2.resize(sal_img, (76, 44), interpolation=cv2.INTER_LANCZOS4)
             # aug_resize = cv2.resize(aug_dis, (76, 44), interpolation=cv2.INTER_LANCZOS4)
             
             sal_flat = get_signature_from_heatmap(sal_img_resize)
             aug_flat = get_signature_from_heatmap(aug_resize)
+            gaze_flat = get_signature_from_heatmap(gaze_resize)
             emd = 0
+            emd_gaze_aug = 0
             try:
                 emd, lowerbound, flow_matrix = cv2.EMD(sal_flat, aug_flat, distType=cv2.DIST_L2, lowerBound=0)
+                emd_gaze_aug, lowerbound, flow_matrix = cv2.EMD(gaze_flat, aug_flat, distType=cv2.DIST_L2, lowerBound=0)
             except:
                 print(imgs)
                 continue
@@ -183,34 +207,39 @@ def run_gaze(user, condition, images):
                 # Bug: do not consider the last one arrays
                 if label == 0:
                     temp_x.append(emd)
+                    temp_emd_g_a.append(emd_gaze_aug)
                     temp_idx.append(imgs)
                     temp_y.append(label)
                 elif label == 1:
                     xs.extend(temp_x[:-45] if len(temp_x) > 45 else [])
+                    emd_g_a.extend(temp_emd_g_a[:-45] if len(temp_emd_g_a) > 45 else [])
                     idx.extend(temp_idx[:-45] if len(temp_idx) > 45 else [])
                     ys.extend(temp_y[:-45] if len(temp_y) > 45 else [])
                     temp_x = []
+                    temp_emd_g_a = []
                     temp_y = []
                     temp_idx = []
                     xs.append(emd)
+                    emd_g_a.append(emd_gaze_aug)
                     idx.append(imgs)
                     ys.append(label)
         except:
             print(user, condition, imgs)
                 
-    df = pd.DataFrame({"name": idx, "emd": xs, "label": ys})
+    df = pd.DataFrame({"name": idx, "emd": xs, "emd_gaze_aug": emd_g_a, "label": ys})
     df.to_csv("./data_{}_{}_{}.csv".format(condition.split("_")[1], condition.split("_")[2], user))
 
 if __name__ == "__main__":
     for user in os.listdir(aug_path):
-        user = "zxyx"
+        if user == "crj":
+            continue
         for condition in os.listdir(os.path.join(aug_path, user)):
             images = sorted(os.listdir(os.path.join(aug_path, user, condition)))
             if "gaze" in condition:
                 run_gaze(user, condition, images)
             else:
                 run_con(user, condition, images)
-        break
+        # break
 
 # class myThread (threading.Thread):
 #     def __init__(self, user, condition, images):

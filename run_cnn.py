@@ -12,6 +12,7 @@ from keras import Sequential
 from keras.applications.vgg16 import VGG16
 from sklearn.model_selection import train_test_split
 
+gaze_path = "./gaze"
 aug_path = "./augs"
 sal_path = "./saliency"
 
@@ -34,14 +35,20 @@ for user in os.listdir(aug_path):
                 ret, binary = cv2.threshold(gray, 20, 255, cv2.THRESH_BINARY)
                 sal_img = cv2.imread(os.path.join(sal_path, user, condition.split("aug")[0] + "all.mp4", imgs), cv2.IMREAD_GRAYSCALE).astype(dtype=np.float32)
 
+                gaze_img = cv2.imread(os.path.join(gaze_path, user, condition.split("aug")[0] + "all.mp4", imgs), cv2.IMREAD_GRAYSCALE).astype(dtype=np.float32)
+                ret, binary_gaze = cv2.threshold(gaze_img, 20, 255, cv2.THRESH_BINARY)
+                gaze_dis = gaussian_filter(binary_gaze, sigma=5)
+                gaze_dis = (gaze_dis - np.min(gaze_dis)) / (np.max(gaze_dis) - np.min(gaze_dis)) * 255.0
+                gaze_dis = gaze_dis.astype(sal_img.dtype)
+
                 aug_dis = gaussian_filter(binary, sigma=5)
                 aug_dis = (aug_dis - np.min(aug_dis)) / (np.max(aug_dis) - np.min(aug_dis)) * 255.0
                 aug_dis = aug_dis.astype(sal_img.dtype)
 
-                # merge = cv2.merge((aug_dis, sal_img))
-                # merge = merge / 255.0
-                # merge = merge.reshape(224, 384, 2)
-                # merge_resize = cv2.resize(merge, (40, 24), interpolation=cv2.INTER_LANCZOS4)
+                merge = cv2.merge((aug_dis, sal_img, gaze_dis))
+                merge = merge / 255.0
+                merge = merge.reshape(224, 384, 2)
+                merge_resize = cv2.resize(merge, (40, 24), interpolation=cv2.INTER_LANCZOS4)
 
                 sal_img = np.maximum(sal_img, aug_dis)
                 sal_img = sal_img / 255.0
@@ -53,7 +60,7 @@ for user in os.listdir(aug_path):
                 # cv2.waitKey()
                 # exit()
 
-                X.append(sal_img_resize)
+                X.append(merge_resize)
                 cur_y = np.zeros(2)
                 cur_y[label] = 1
                 y.append(cur_y)
@@ -92,12 +99,14 @@ for test_user in os.listdir(aug_path):
             X_train.extend(Xs[user])
             y_train.extend(ys[user])
 
-    
-    train_test_length = int(len(Xs[test_user]) / 10)
-    X_train.extend(Xs[test_user][:train_test_length])
-    y_train.extend(ys[test_user][:train_test_length])
-    X_test.extend(Xs[test_user][train_test_length:])
-    y_test.extend(ys[test_user][train_test_length:])
+    # train_test_length = int(len(Xs[test_user]) / 10)
+    # X_train.extend(Xs[test_user][:train_test_length])
+    # y_train.extend(ys[test_user][:train_test_length])
+    # X_test.extend(Xs[test_user][train_test_length:])
+    # y_test.extend(ys[test_user][train_test_length:])
+
+    X_test = Xs[test_user]
+    y_test = ys[test_user]
 
     # for i in range(len(Xs[test_user])):
     #     if random() > 0.9:
