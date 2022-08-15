@@ -21,4 +21,5 @@ for user in os.listdir(imgs_path):
                     dsize = (384, 224)
                     output = cv2.resize(img, dsize, interpolation=cv2.INTER_LANCZOS4)
                     cv2.imwrite(os.path.join(output_path) + "/%04d.png" % (i + 1), output)
+        exit()
 

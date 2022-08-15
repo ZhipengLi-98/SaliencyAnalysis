@@ -231,15 +231,15 @@ def run_gaze(user, condition, images):
 
 if __name__ == "__main__":
     for user in os.listdir(aug_path):
-        if user == "crj":
-            continue
+        user = "gzt"
         for condition in os.listdir(os.path.join(aug_path, user)):
+            print(user, condition)
             images = sorted(os.listdir(os.path.join(aug_path, user, condition)))
             if "gaze" in condition:
                 run_gaze(user, condition, images)
             else:
                 run_con(user, condition, images)
-        # break
+        break
 
 # class myThread (threading.Thread):
 #     def __init__(self, user, condition, images):

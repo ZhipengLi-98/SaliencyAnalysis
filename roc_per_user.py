@@ -21,7 +21,7 @@ data_path = "./data"
 roc_per_user = []
 
 for user in os.listdir(data_path):
-    user = "crj"
+    user = "gzt"
     print(user)
     files = []
     for condition in os.listdir(os.path.join(data_path, user)):
