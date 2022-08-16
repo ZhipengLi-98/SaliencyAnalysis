@@ -29,22 +29,22 @@ class_1_over = class_1.sample(class_count_0, replace=True)
 
 test = pd.concat([class_1_over, class_0], axis=0)
 
-X = test['emd']
+X = test['emd_gaze_aug']
 y = test['label']
 
 # print(len(X))
 
-fig, axes = plt.subplots(1, 2)
-axes[0].hist(class_0['emd'], bins=100, weights=np.ones(len(class_0['emd'])) / len(class_0['emd']))
-axes[1].hist(class_1['emd'], color="#ff7f0e", bins=100, weights=np.ones(len(class_1['emd'])) / len(class_1['emd']))
-axes[0].set_xlabel("EMD")
-axes[0].set_ylabel("Percentage of frames")
-axes[1].set_xlabel("EMD")
-axes[1].set_ylabel("Percentage of frames")
-axes[0].yaxis.set_major_formatter(PercentFormatter(1))
-axes[1].yaxis.set_major_formatter(PercentFormatter(1))
-plt.show()
-exit()
+# fig, axes = plt.subplots(1, 2)
+# axes[0].hist(class_0['emd'], bins=100, weights=np.ones(len(class_0['emd'])) / len(class_0['emd']))
+# axes[1].hist(class_1['emd'], color="#ff7f0e", bins=100, weights=np.ones(len(class_1['emd'])) / len(class_1['emd']))
+# axes[0].set_xlabel("EMD")
+# axes[0].set_ylabel("Percentage of frames")
+# axes[1].set_xlabel("EMD")
+# axes[1].set_ylabel("Percentage of frames")
+# axes[0].yaxis.set_major_formatter(PercentFormatter(1))
+# axes[1].yaxis.set_major_formatter(PercentFormatter(1))
+# plt.show()
+# exit()
 
 X = X.values.reshape(-1, 1)
 

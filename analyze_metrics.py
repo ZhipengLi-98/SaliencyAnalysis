@@ -41,11 +41,11 @@ y = np.array(df_train["label"]).reshape(-1, 1)
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)
 clf = LogisticRegression()
 clf.fit(X_train, y_train)
+print(clf.score(X_test, y_test))
 
 probs = clf.predict_proba(X_test)
 preds = probs[:,1]
 fpr, tpr, threshold = metrics.roc_curve(y_test, preds)
-print(threshold)
 roc_auc = metrics.auc(fpr, tpr)
 
 plt.plot(fpr, tpr, 'b', label = 'AUC = %0.2f' % roc_auc)
@@ -56,6 +56,7 @@ plt.ylim([0, 1])
 plt.ylabel('True Positive Rate')
 plt.xlabel('False Positive Rate')
 plt.show()
+exit()
 
 for test_user in os.listdir(metrics_path):
     train = []
