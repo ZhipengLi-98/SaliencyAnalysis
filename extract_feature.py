@@ -119,7 +119,7 @@ def run_con(user, condition, images):
             locationy.append(np.mean(innerpoints[:, 1]) / 384)
             labels.append(label)
             emd_g_a.append(emd_gaze_aug)
-            emd_s_a.append(emd_s_a)
+            emd_s_a.append(emd)
             prev_cnt = diff
             prev_img = binary
         except:
@@ -151,7 +151,7 @@ def run_gaze(user, condition, images):
     prev_cnt = 0
     for imgs in tqdm(images):
         # print(imgs)
-        try:
+        # try:
             img = cv2.imread(os.path.join(aug_path, user, condition, imgs))
             gray = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
             ret, binary = cv2.threshold(gray, 20, 255, cv2.THRESH_BINARY)
@@ -185,6 +185,10 @@ def run_gaze(user, condition, images):
                         print(imgs, np.mean(np.mean(innerpoints[:, 2])))
                         label = 1
                 
+            if len(prev_img) == 0:
+                prev_img = binary
+                prev_cnt = cv2.countNonZero(binary)
+                continue
             sal_img = cv2.imread(os.path.join(sal_path, user, condition.split("aug")[0] + "all.mp4", imgs), cv2.IMREAD_GRAYSCALE).astype(dtype=np.float32)
             
             aug_dis = gaussian_filter(binary, sigma=5)
@@ -226,7 +230,7 @@ def run_gaze(user, condition, images):
                     temp_ly.append(np.mean(innerpoints[:, 1]) / 384)
                     temp_l.append(label)
                     temp_g_a.append(emd_gaze_aug)
-                    temp_s_a.append(emd_s_a)
+                    temp_s_a.append(emd)
                 elif label == 1:
                     frequency.extend(temp_f[:-45] if len(temp_f) > 45 else [])
                     strength.extend(temp_s[:-45] if len(temp_s) > 45 else [])
@@ -247,13 +251,13 @@ def run_gaze(user, condition, images):
                     temp_g_a = []
             prev_cnt = diff
             prev_img = binary
-        except:
-            print(user, condition, imgs)
+        # except:
+        #     print(user, condition, imgs)
     df = pd.DataFrame({"name": names, "emd_g_a": emd_g_a, "emd_s_a": emd_s_a, "label": labels, "strength": strength, "frequency": frequency, "locationx": locationx, "locationy": locationy})
     df.to_csv("./metrics/{}/{}.csv".format(user, condition))
 
 for user in os.listdir(aug_path):
-    user = "zxyx"
+    user = "crj"
     for condition in os.listdir(os.path.join(aug_path, user)):
         print(condition)
         images = sorted(os.listdir(os.path.join(aug_path, user, condition)))
