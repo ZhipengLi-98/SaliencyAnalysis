@@ -56,7 +56,7 @@ plt.ylim([0, 1])
 plt.ylabel('True Positive Rate')
 plt.xlabel('False Positive Rate')
 plt.show()
-exit()
+
 
 for test_user in os.listdir(metrics_path):
     train = []
@@ -88,6 +88,15 @@ for test_user in os.listdir(metrics_path):
 
     X_test = df_test.loc[:, features].values
     y_test = np.array(df_test["label"]).reshape(-1, 1)
+
+    # train_test_length = int(len(X_test) / 10)
+    # print(train_test_length)
+    # print(X_test.shape)
+    # print(X_test[:train_test_length])
+    # X_train = np.concatenate((X_train, X_test[:train_test_length]))
+    # y_train = np.concatenate((y_train, y_test[:train_test_length]))
+    # X_test = X_test[train_test_length:]
+    # y_test = y_test[train_test_length:]
 
     clf = LogisticRegression()
     clf.fit(X_train, y_train)
