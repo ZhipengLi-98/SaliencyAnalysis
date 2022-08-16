@@ -35,7 +35,7 @@ for user in os.listdir(aug_path):
                 ret, binary = cv2.threshold(gray, 20, 255, cv2.THRESH_BINARY)
                 sal_img = cv2.imread(os.path.join(sal_path, user, condition.split("aug")[0] + "all.mp4", imgs), cv2.IMREAD_GRAYSCALE).astype(dtype=np.float32)
 
-                gaze_img = cv2.imread(os.path.join(gaze_path, user, condition.split("aug")[0] + "all.mp4", imgs), cv2.IMREAD_GRAYSCALE).astype(dtype=np.float32)
+                gaze_img = cv2.imread(os.path.join(gaze_path, user, condition.split("aug")[0] + "gaze.mp4", imgs), cv2.IMREAD_GRAYSCALE).astype(dtype=np.float32)
                 ret, binary_gaze = cv2.threshold(gaze_img, 20, 255, cv2.THRESH_BINARY)
                 gaze_dis = gaussian_filter(binary_gaze, sigma=5)
                 gaze_dis = (gaze_dis - np.min(gaze_dis)) / (np.max(gaze_dis) - np.min(gaze_dis)) * 255.0
@@ -47,7 +47,7 @@ for user in os.listdir(aug_path):
 
                 merge = cv2.merge((aug_dis, sal_img, gaze_dis))
                 merge = merge / 255.0
-                merge = merge.reshape(224, 384, 2)
+                merge = merge.reshape(224, 384, 3)
                 merge_resize = cv2.resize(merge, (40, 24), interpolation=cv2.INTER_LANCZOS4)
 
                 sal_img = np.maximum(sal_img, aug_dis)
@@ -66,7 +66,7 @@ for user in os.listdir(aug_path):
                 y.append(cur_y)
                 temp_y.append(label)
             except:
-                pass
+                print(user, condition, imgs)
     
     df = pd.DataFrame({"img": X, "label": y, "temp_label": temp_y})
     class_0 = df[df['temp_label'] == 0]
@@ -116,14 +116,14 @@ for test_user in os.listdir(aug_path):
     #         X_test.append(Xs[test_user][i])
     #         y_test.append(ys[test_user][i])
 
-    X_train = np.array(X_train).reshape(-1, 24, 40, 1)
+    X_train = np.array(X_train).reshape(-1, 24, 40, 3)
     y_train = np.array(y_train).reshape(-1, 2)
-    X_test = np.array(X_test).reshape(-1, 24, 40, 1)
+    X_test = np.array(X_test).reshape(-1, 24, 40, 3)
     y_test = np.array(y_test).reshape(-1, 2)
 
     model = Sequential()
     
-    model.add(Conv2D(32, kernel_size=5, activation="relu", input_shape=(24, 40, 1)))
+    model.add(Conv2D(32, kernel_size=5, activation="relu", input_shape=(24, 40, 3)))
     model.add(Conv2D(32, kernel_size=5, activation="relu"))
     model.add(MaxPool2D(pool_size=(2,2)))
     model.add(Dropout(0.25))

@@ -9,6 +9,7 @@ from sklearn.model_selection import cross_val_score
 import numpy as np
 import sklearn.metrics as metrics
 import os
+from matplotlib.ticker import PercentFormatter
 
 data_path = "./data"
 
@@ -31,15 +32,17 @@ test = pd.concat([class_1_over, class_0], axis=0)
 X = test['emd']
 y = test['label']
 
-print(len(X))
+# print(len(X))
 
 fig, axes = plt.subplots(1, 2)
-axes[0].hist(class_0['emd'], bins=100)
-axes[1].hist(class_1['emd'], color="#ff7f0e", bins=100)
+axes[0].hist(class_0['emd'], bins=100, weights=np.ones(len(class_0['emd'])) / len(class_0['emd']))
+axes[1].hist(class_1['emd'], color="#ff7f0e", bins=100, weights=np.ones(len(class_1['emd'])) / len(class_1['emd']))
 axes[0].set_xlabel("EMD")
-axes[0].set_ylabel("Number of frames")
+axes[0].set_ylabel("Percentage of frames")
 axes[1].set_xlabel("EMD")
-axes[1].set_ylabel("Number of frames")
+axes[1].set_ylabel("Percentage of frames")
+axes[0].yaxis.set_major_formatter(PercentFormatter(1))
+axes[1].yaxis.set_major_formatter(PercentFormatter(1))
 plt.show()
 exit()
 
@@ -71,60 +74,59 @@ plt.ylabel('True Positive Rate')
 plt.xlabel('False Positive Rate')
 plt.show()
 
+# for user in os.listdir(data_path):
+#     print(user)
+#     files = []
+#     for condition in os.listdir(os.path.join(data_path, user)):
+#         files.append(pd.read_csv(os.path.join(data_path, user, condition)))
 
-for user in os.listdir(data_path):
-    print(user)
-    files = []
-    for condition in os.listdir(os.path.join(data_path, user)):
-        files.append(pd.read_csv(os.path.join(data_path, user, condition)))
+#     df = pd.concat(files)
 
-    df = pd.concat(files)
+#     class_0 = df[df['label'] == 0]
+#     class_1 = df[df['label'] == 1]
+#     class_count_0, class_count_1 = df['label'].value_counts()
+#     class_1_over = class_1.sample(class_count_0, replace=True)
 
-    class_0 = df[df['label'] == 0]
-    class_1 = df[df['label'] == 1]
-    class_count_0, class_count_1 = df['label'].value_counts()
-    class_1_over = class_1.sample(class_count_0, replace=True)
+#     test = pd.concat([class_1_over, class_0], axis=0)
 
-    test = pd.concat([class_1_over, class_0], axis=0)
+#     X = df['emd_gaze_aug']
+#     y = df['label']
 
-    X = df['emd']
-    y = df['label']
+#     print(len(X))
 
-    print(len(X))
+#     # fig, axes = plt.subplots(1, 1)
+#     # axes.hist(class_0['emd'])
+#     # axes.hist(class_1_over['emd'])
+#     # plt.show()
+#     # exit()
 
-    # fig, axes = plt.subplots(1, 1)
-    # axes.hist(class_0['emd'])
-    # axes.hist(class_1_over['emd'])
-    # plt.show()
-    # exit()
+#     X = X.values.reshape(-1, 1)
 
-    X = X.values.reshape(-1, 1)
+#     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)
 
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)
+#     # clf = svm.SVC(probability=True)
+#     # scores = cross_val_score(clf, X, y, cv=5)
+#     # print(np.mean(scores))
 
-    # clf = svm.SVC(probability=True)
-    # scores = cross_val_score(clf, X, y, cv=5)
-    # print(np.mean(scores))
+#     clf = LogisticRegression()
+#     clf.fit(X_train, y_train)
+#     # scores = cross_val_score(clf, X, y, cv=5)
+#     # print(np.mean(scores))
 
-    clf = LogisticRegression()
-    clf.fit(X_train, y_train)
-    # scores = cross_val_score(clf, X, y, cv=5)
-    # print(np.mean(scores))
+#     probs = clf.predict_proba(X_test)
+#     preds = probs[:,1]
+#     fpr, tpr, threshold = metrics.roc_curve(y_test, preds)
+#     print(threshold)
+#     roc_auc = metrics.auc(fpr, tpr)
 
-    probs = clf.predict_proba(X_test)
-    preds = probs[:,1]
-    fpr, tpr, threshold = metrics.roc_curve(y_test, preds)
-    print(threshold)
-    roc_auc = metrics.auc(fpr, tpr)
-
-    plt.plot(fpr, tpr, 'b', label = 'AUC = %0.2f' % roc_auc)
-    plt.legend(loc = 'lower right')
-    plt.plot([0, 1], [0, 1],'r--')
-    plt.xlim([0, 1])
-    plt.ylim([0, 1])
-    plt.ylabel('True Positive Rate')
-    plt.xlabel('False Positive Rate')
-    plt.show()
+#     plt.plot(fpr, tpr, 'b', label = 'AUC = %0.2f' % roc_auc)
+#     plt.legend(loc = 'lower right')
+#     plt.plot([0, 1], [0, 1],'r--')
+#     plt.xlim([0, 1])
+#     plt.ylim([0, 1])
+#     plt.ylabel('True Positive Rate')
+#     plt.xlabel('False Positive Rate')
+#     plt.show()
 
 
 for test_user in os.listdir(data_path):
@@ -150,25 +152,22 @@ for test_user in os.listdir(data_path):
 
     test = pd.concat([class_1_over, class_0], axis=0)
 
-    X = df['emd']
-    y = df['label']
+    X = test_df['emd_gaze_aug']
+    y = test_df['label']
 
     print(len(X))
-
-    # fig, axes = plt.subplots(1, 1)
-    # axes.hist(class_0['emd'])
-    # axes.hist(class_1_over['emd'])
-    # plt.show()
-    # exit()
 
     X = X.values.reshape(-1, 1)
 
     # X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)
     X_train = X
     y_train = y
-    X_test = test_df['emd']
+    X_test = test_df['emd_gaze_aug']
     y_test = test_df['label']
     X_test = X_test.values.reshape(-1, 1)
+
+    
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)
 
     # clf = svm.SVC(probability=True)
     # scores = cross_val_score(clf, X, y, cv=5)
@@ -185,11 +184,11 @@ for test_user in os.listdir(data_path):
     print(threshold)
     roc_auc = metrics.auc(fpr, tpr)
 
-    plt.plot(fpr, tpr, 'b', label = 'AUC = %0.2f' % roc_auc)
+    plt.plot(fpr, tpr, label = 'AUC = %0.2f' % roc_auc)
     plt.legend(loc = 'lower right')
     plt.plot([0, 1], [0, 1],'r--')
-    plt.xlim([0, 1])
-    plt.ylim([0, 1])
-    plt.ylabel('True Positive Rate')
-    plt.xlabel('False Positive Rate')
-    plt.show()
+plt.xlim([0, 1])
+plt.ylim([0, 1])
+plt.ylabel('True Positive Rate')
+plt.xlabel('False Positive Rate')
+plt.show()
