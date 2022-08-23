@@ -76,7 +76,7 @@ def run_con(user, condition, images):
                 
                 if len(innerpoints) > 0:
                     innerpoints = np.array(innerpoints)
-                    if (np.mean(innerpoints[:, 2])) < 70:
+                    if (np.mean(innerpoints[:, 2])) > 250:
                         print(imgs, np.mean(np.mean(innerpoints[:, 2])))
                         label = 1
             if len(innerpoints) == 0:
@@ -177,12 +177,16 @@ def run_gaze(user, condition, images):
                 for i in range(img.shape[0]):
                     for j in range(img.shape[1]):
                         if cv2.pointPolygonTest(outline, (j, i), False) > 0:
-                            innerpoints.append([i, j, gray[i][j]])
-                
+                            innerpoints.append([i, j, img[i][j][0], img[i][j][1], img[i][j][2]])
+                # print(innerpoints)
+                # innerpoints = np.array(innerpoints)
+                # print(np.mean(innerpoints[:, 2]))
+                # print(np.mean(innerpoints[:, 3]))
+                # print(np.mean(innerpoints[:, 4]))
                 if len(innerpoints) > 0:
                     innerpoints = np.array(innerpoints)
-                    if (np.mean(innerpoints[:, 2])) < 70:
-                        print(imgs, np.mean(np.mean(innerpoints[:, 2])))
+                    if max(np.mean(innerpoints[:, 2]), np.mean(innerpoints[:, 3]), np.mean(innerpoints[:, 4])) < 100:
+                        print(imgs, np.mean(innerpoints[:, 2]), np.mean(innerpoints[:, 3]), np.mean(innerpoints[:, 4]))
                         label = 1
                 
             if len(prev_img) == 0:
@@ -232,14 +236,23 @@ def run_gaze(user, condition, images):
                     temp_g_a.append(emd_gaze_aug)
                     temp_s_a.append(emd)
                 elif label == 1:
-                    frequency.extend(temp_f[:-45] if len(temp_f) > 45 else [])
-                    strength.extend(temp_s[:-45] if len(temp_s) > 45 else [])
-                    names.extend(temp_names[:-45] if len(temp_names) > 45 else [])
-                    locationx.extend(temp_lx[:-45] if len(temp_lx) > 45 else [])
-                    locationy.extend(temp_ly[:-45] if len(temp_ly) > 45 else [])
-                    labels.extend(temp_l[:-45] if len(temp_l) > 45 else [])
-                    emd_g_a.extend(temp_g_a[:-45] if len(temp_g_a) > 45 else [])
-                    emd_s_a.extend(temp_s_a[:-45] if len(temp_s_a) > 45 else [])
+                    diff = cv2.countNonZero(cv2.absdiff(prev_img, binary))
+                    temp_f.append(diff / (384 * 224))
+                    temp_s.append(diff / prev_cnt if prev_cnt > 0 else 0)
+                    temp_names.append(imgs)
+                    temp_lx.append(np.mean(innerpoints[:, 0]) / 224)
+                    temp_ly.append(np.mean(innerpoints[:, 1]) / 384)
+                    temp_l.append(label)
+                    temp_g_a.append(emd_gaze_aug)
+                    temp_s_a.append(emd)
+                    frequency.extend(temp_f[:-20] if len(temp_f) > 20 else [])
+                    strength.extend(temp_s[:-20] if len(temp_s) > 20 else [])
+                    names.extend(temp_names[:-20] if len(temp_names) > 20 else [])
+                    locationx.extend(temp_lx[:-20] if len(temp_lx) > 20 else [])
+                    locationy.extend(temp_ly[:-20] if len(temp_ly) > 20 else [])
+                    labels.extend(temp_l[:-20] if len(temp_l) > 20 else [])
+                    emd_g_a.extend(temp_g_a[:-20] if len(temp_g_a) > 20 else [])
+                    emd_s_a.extend(temp_s_a[:-20] if len(temp_s_a) > 20 else [])
                     
                     temp_names = []
                     temp_lx = []
@@ -257,12 +270,16 @@ def run_gaze(user, condition, images):
     df.to_csv("./metrics/{}/{}.csv".format(user, condition))
 
 for user in os.listdir(aug_path):
-    user = "crj"
+    user = "lzj"
     for condition in os.listdir(os.path.join(aug_path, user)):
+        if "home" not in condition:
+            continue
         print(condition)
         images = sorted(os.listdir(os.path.join(aug_path, user, condition)))
         if "gaze" in condition:
             run_gaze(user, condition, images)
-        else:
+        elif "con" in condition:
             run_con(user, condition, images)
+        else:
+            run_gaze(user, condition, images)
     break
