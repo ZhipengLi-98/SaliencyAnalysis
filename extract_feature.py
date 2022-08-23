@@ -236,23 +236,15 @@ def run_gaze(user, condition, images):
                     temp_g_a.append(emd_gaze_aug)
                     temp_s_a.append(emd)
                 elif label == 1:
-                    diff = cv2.countNonZero(cv2.absdiff(prev_img, binary))
-                    temp_f.append(diff / (384 * 224))
-                    temp_s.append(diff / prev_cnt if prev_cnt > 0 else 0)
-                    temp_names.append(imgs)
-                    temp_lx.append(np.mean(innerpoints[:, 0]) / 224)
-                    temp_ly.append(np.mean(innerpoints[:, 1]) / 384)
-                    temp_l.append(label)
-                    temp_g_a.append(emd_gaze_aug)
-                    temp_s_a.append(emd)
-                    frequency.extend(temp_f[:-20] if len(temp_f) > 20 else [])
-                    strength.extend(temp_s[:-20] if len(temp_s) > 20 else [])
-                    names.extend(temp_names[:-20] if len(temp_names) > 20 else [])
-                    locationx.extend(temp_lx[:-20] if len(temp_lx) > 20 else [])
-                    locationy.extend(temp_ly[:-20] if len(temp_ly) > 20 else [])
+                    frequency.extend(temp_f)
+                    strength.extend(temp_s)
+                    names.extend(temp_names)
+                    locationx.extend(temp_lx)
+                    locationy.extend(temp_ly)
                     labels.extend(temp_l[:-20] if len(temp_l) > 20 else [])
-                    emd_g_a.extend(temp_g_a[:-20] if len(temp_g_a) > 20 else [])
-                    emd_s_a.extend(temp_s_a[:-20] if len(temp_s_a) > 20 else [])
+                    labels.extend([1 for k in range(20)] if len(temp_l) > 20 else [])
+                    emd_g_a.extend(temp_g_a)
+                    emd_s_a.extend(temp_s_a)
                     
                     temp_names = []
                     temp_lx = []
@@ -272,7 +264,7 @@ def run_gaze(user, condition, images):
 for user in os.listdir(aug_path):
     user = "lzj"
     for condition in os.listdir(os.path.join(aug_path, user)):
-        if "home" not in condition:
+        if "lab" not in condition:
             continue
         print(condition)
         images = sorted(os.listdir(os.path.join(aug_path, user, condition)))

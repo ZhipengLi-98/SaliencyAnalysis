@@ -128,12 +128,13 @@ plt.show()
 #     plt.xlabel('False Positive Rate')
 #     plt.show()
 
-
-for test_user in os.listdir(data_path):
+data_path = "./metrics"
+for test_user in os.listdir("./metrics"):
+    test_user = "tmh"
     print(test_user)
     files = []
     test_files = []
-    for user in os.listdir(data_path):
+    for user in os.listdir("./metrics"):
         print(user)
         if user == test_user:
             for condition in os.listdir(os.path.join(data_path, test_user)):
@@ -152,7 +153,7 @@ for test_user in os.listdir(data_path):
 
     test = pd.concat([class_1_over, class_0], axis=0)
 
-    X = test_df['emd_gaze_aug']
+    X = test_df['emd_g_a']
     y = test_df['label']
 
     print(len(X))
@@ -162,7 +163,7 @@ for test_user in os.listdir(data_path):
     # X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)
     X_train = X
     y_train = y
-    X_test = test_df['emd_gaze_aug']
+    X_test = test_df['emd_g_a']
     y_test = test_df['label']
     X_test = X_test.values.reshape(-1, 1)
 
@@ -187,6 +188,7 @@ for test_user in os.listdir(data_path):
     plt.plot(fpr, tpr, label = 'AUC = %0.2f' % roc_auc)
     plt.legend(loc = 'lower right')
     plt.plot([0, 1], [0, 1],'r--')
+    break
 plt.xlim([0, 1])
 plt.ylim([0, 1])
 plt.ylabel('True Positive Rate')
