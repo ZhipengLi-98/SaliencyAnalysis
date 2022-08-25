@@ -177,17 +177,19 @@ def run_gaze(user, condition, images):
                 for i in range(img.shape[0]):
                     for j in range(img.shape[1]):
                         if cv2.pointPolygonTest(outline, (j, i), False) > 0:
-                            innerpoints.append([i, j, img[i][j][0], img[i][j][1], img[i][j][2]])
-                # print(innerpoints)
-                # innerpoints = np.array(innerpoints)
-                # print(np.mean(innerpoints[:, 2]))
-                # print(np.mean(innerpoints[:, 3]))
-                # print(np.mean(innerpoints[:, 4]))
+                            # innerpoints.append([i, j, img[i][j][0], img[i][j][1], img[i][j][2]])
+                            innerpoints.append([i, j, gray[i][j]])
+                
                 if len(innerpoints) > 0:
                     innerpoints = np.array(innerpoints)
-                    if max(np.mean(innerpoints[:, 2]), np.mean(innerpoints[:, 3]), np.mean(innerpoints[:, 4])) < 100:
-                        print(imgs, np.mean(innerpoints[:, 2]), np.mean(innerpoints[:, 3]), np.mean(innerpoints[:, 4]))
+                    if (np.mean(innerpoints[:, 2])) < 70:
+                        print(imgs, np.mean(np.mean(innerpoints[:, 2])))
                         label = 1
+                # if len(innerpoints) > 0:
+                #     innerpoints = np.array(innerpoints)
+                #     if max(np.mean(innerpoints[:, 2]), np.mean(innerpoints[:, 3]), np.mean(innerpoints[:, 4])) < 100:
+                #         print(imgs, np.mean(innerpoints[:, 2]), np.mean(innerpoints[:, 3]), np.mean(innerpoints[:, 4]))
+                #         label = 1
                 
             if len(prev_img) == 0:
                 prev_img = binary
@@ -262,9 +264,9 @@ def run_gaze(user, condition, images):
     df.to_csv("./metrics/{}/{}.csv".format(user, condition))
 
 for user in os.listdir(aug_path):
-    user = "lzj"
+    user = "zyh"
     for condition in os.listdir(os.path.join(aug_path, user)):
-        if "lab" not in condition:
+        if "video" not in condition:
             continue
         print(condition)
         images = sorted(os.listdir(os.path.join(aug_path, user, condition)))

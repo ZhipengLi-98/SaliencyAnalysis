@@ -102,9 +102,11 @@ if __name__ == '__main__':
     imgs_path = "./imgs"
     saliency_path = "./saliency"
     for user in os.listdir(imgs_path):
-        user = "lzj"
+        user = "zyh"
         print(user)
         for condition in os.listdir(os.path.join(imgs_path, user)):
+            if "video" not in condition:
+                continue
             print(condition)
             for folder in os.listdir(os.path.join(imgs_path, user, condition)):
                 if folder.split("_")[-1].split(".")[0] == "all":

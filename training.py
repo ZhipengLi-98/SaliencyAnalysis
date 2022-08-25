@@ -17,6 +17,8 @@ files = []
 for user in os.listdir(data_path):
     if "DS_Store" in user:
         continue
+    if "zyh" not in user:
+        continue
     for condition in os.listdir(os.path.join(data_path, user)):
         files.append(pd.read_csv(os.path.join(data_path, user, condition)))
 
