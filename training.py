@@ -15,9 +15,7 @@ data_path = "./data"
 
 files = []
 for user in os.listdir(data_path):
-    if "DS_Store" in user:
-        continue
-    if "zyh" not in user:
+    if "DS_Store" in user or "zyh" in user:
         continue
     for condition in os.listdir(os.path.join(data_path, user)):
         files.append(pd.read_csv(os.path.join(data_path, user, condition)))
@@ -53,13 +51,10 @@ X = X.values.reshape(-1, 1)
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)
 
 # clf = svm.SVC(probability=True)
-# scores = cross_val_score(clf, X, y, cv=5)
-# print(np.mean(scores))
 
 clf = LogisticRegression()
 clf.fit(X_train, y_train)
-# scores = cross_val_score(clf, X, y, cv=5)
-# print(np.mean(scores))
+print(clf.score(X_test, y_test))
 
 probs = clf.predict_proba(X_test)
 preds = probs[:,1]
@@ -130,20 +125,26 @@ plt.show()
 #     plt.xlabel('False Positive Rate')
 #     plt.show()
 
-data_path = "./metrics"
-for test_user in os.listdir("./metrics"):
-    test_user = "tmh"
+for test_user in os.listdir(data_path):
+    test_user = "zyh"
     print(test_user)
     files = []
     test_files = []
-    for user in os.listdir("./metrics"):
+    for user in os.listdir(data_path):
         print(user)
         if user == test_user:
             for condition in os.listdir(os.path.join(data_path, test_user)):
-                test_files.append(pd.read_csv(os.path.join(data_path, test_user, condition)))
+                if user == "zyh" and "lab" not in condition:
+                    continue
+                else:
+                    test_files.append(pd.read_csv(os.path.join(data_path, test_user, condition)))
+                
         else:
             for condition in os.listdir(os.path.join(data_path, user)):
-                files.append(pd.read_csv(os.path.join(data_path, user, condition)))
+                if user == "zyh" and "lab" not in condition:
+                    continue
+                else:
+                    files.append(pd.read_csv(os.path.join(data_path, user, condition)))
         
     df = pd.concat(files)
     test_df = pd.concat(test_files)
@@ -155,7 +156,7 @@ for test_user in os.listdir("./metrics"):
 
     test = pd.concat([class_1_over, class_0], axis=0)
 
-    X = test_df['emd_g_a']
+    X = test_df['emd']
     y = test_df['label']
 
     print(len(X))
@@ -165,7 +166,7 @@ for test_user in os.listdir("./metrics"):
     # X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)
     X_train = X
     y_train = y
-    X_test = test_df['emd_g_a']
+    X_test = test_df['emd']
     y_test = test_df['label']
     X_test = X_test.values.reshape(-1, 1)
 
@@ -173,13 +174,10 @@ for test_user in os.listdir("./metrics"):
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)
 
     # clf = svm.SVC(probability=True)
-    # scores = cross_val_score(clf, X, y, cv=5)
-    # print(np.mean(scores))
 
     clf = LogisticRegression()
     clf.fit(X_train, y_train)
-    # scores = cross_val_score(clf, X, y, cv=5)
-    # print(np.mean(scores))
+    print(clf.score(X_test, y_test))
 
     probs = clf.predict_proba(X_test)
     preds = probs[:,1]

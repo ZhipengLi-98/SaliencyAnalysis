@@ -231,7 +231,7 @@ def run_gaze(user, condition, images):
 
 if __name__ == "__main__":
     for user in os.listdir(aug_path):
-        user = "zyh"
+        user = "cyr"
         for condition in os.listdir(os.path.join(aug_path, user)):
             print(user, condition)
             images = sorted(os.listdir(os.path.join(aug_path, user, condition)))

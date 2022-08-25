@@ -19,13 +19,18 @@ ys = {}
 X_train = []
 y_train = []
 
+users = ["lzj", "tmh"]
+
 for user in os.listdir(aug_path):
+    if user not in users:
+        continue
     t_x = []
     t_y = []
     for condition in os.listdir(os.path.join(aug_path, user)):
         print(user, condition)
-        df = pd.read_csv("./data/{}/data_{}_{}_{}.csv".format(user, condition.split("_")[1], condition.split("_")[2], user))
-        X = df["emd"].to_numpy()
+        df = pd.read_csv("./metrics/{}/{}.csv".format(user, condition))
+        # df = pd.read_csv("./data/{}/data_{}_{}_{}.csv".format(user, condition.split("_")[1], condition.split("_")[2], user))
+        X = df["emd_s_a"].to_numpy()
         y = df["label"].to_numpy()
         temp_x = []
         temp_y = []
@@ -53,12 +58,16 @@ for user in os.listdir(aug_path):
     ys[user] = y
 
 for test_user in os.listdir(aug_path):
+    if test_user not in users:
+        continue
     print(test_user)
     X_train = []
     y_train = []
     X_test = []
     y_test = []
     for user in os.listdir(aug_path):
+        if user not in users:
+            continue
         if user != test_user:
             X_train.extend(Xs[user])
             y_train.extend(ys[user])
@@ -94,10 +103,10 @@ for test_user in os.listdir(aug_path):
     model.add(Dropout(0.2))
     model.add(Dense(1))
     model.compile(optimizer='adam', loss='mean_squared_error', metrics=['accuracy'])
-    model.fit(X_train, y_train, epochs=3, batch_size=32, validation_data=(X_test, y_test))
+    model.fit(X_train, y_train, epochs=10, batch_size=32, validation_data=(X_test, y_test))
     
     # import visualkeras
     # from PIL import ImageFont
     # font = ImageFont.truetype("arial.ttf", 8)  # using comic sans is strictly prohibited!
     # visualkeras.layered_view(model, to_file='lstm.png', legend=True, font=font).show() # write and show
-    # break
+    
