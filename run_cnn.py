@@ -19,6 +19,8 @@ sal_path = "./saliency"
 Xs = {}
 ys = {}
 
+users = ["cyr", "zyh", "lzj", "tmh"]
+
 for user in os.listdir(aug_path):
     X = []
     y = []
@@ -26,7 +28,8 @@ for user in os.listdir(aug_path):
     for condition in os.listdir(os.path.join(aug_path, user)):
         print(user, condition)
         images = sorted(os.listdir(os.path.join(aug_path, user, condition)))
-        df = pd.read_csv("./data/{}/data_{}_{}_{}.csv".format(user, condition.split("_")[1], condition.split("_")[2], user))
+        df = pd.read_csv("./metrics/{}/{}.csv".format(user, condition))
+        # df = pd.read_csv("./data/{}/data_{}_{}_{}.csv".format(user, condition.split("_")[1], condition.split("_")[2], user))
         for imgs in tqdm(images):
             try:
                 label = int(df[df["name"] == imgs]["label"])
@@ -45,9 +48,9 @@ for user in os.listdir(aug_path):
                 aug_dis = (aug_dis - np.min(aug_dis)) / (np.max(aug_dis) - np.min(aug_dis)) * 255.0
                 aug_dis = aug_dis.astype(sal_img.dtype)
 
-                merge = cv2.merge((aug_dis, sal_img, gaze_dis))
+                merge = cv2.merge((aug_dis, sal_img))
                 merge = merge / 255.0
-                merge = merge.reshape(224, 384, 3)
+                merge = merge.reshape(224, 384, 2)
                 merge_resize = cv2.resize(merge, (40, 24), interpolation=cv2.INTER_LANCZOS4)
 
                 sal_img = np.maximum(sal_img, aug_dis)
@@ -89,12 +92,16 @@ for user in os.listdir(aug_path):
     ys[user] = y
 
 for test_user in os.listdir(aug_path):
+    if test_user not in users:
+        continue
     print(test_user)
     X_train = []
     y_train = []
     X_test = []
     y_test = []
     for user in os.listdir(aug_path):
+        if user in users:
+            continue
         if user != test_user and user in Xs.keys():
             X_train.extend(Xs[user])
             y_train.extend(ys[user])
@@ -116,14 +123,14 @@ for test_user in os.listdir(aug_path):
     #         X_test.append(Xs[test_user][i])
     #         y_test.append(ys[test_user][i])
 
-    X_train = np.array(X_train).reshape(-1, 24, 40, 3)
+    X_train = np.array(X_train).reshape(-1, 24, 40, 2)
     y_train = np.array(y_train).reshape(-1, 2)
-    X_test = np.array(X_test).reshape(-1, 24, 40, 3)
+    X_test = np.array(X_test).reshape(-1, 24, 40, 2)
     y_test = np.array(y_test).reshape(-1, 2)
 
     model = Sequential()
     
-    model.add(Conv2D(32, kernel_size=5, activation="relu", input_shape=(24, 40, 3)))
+    model.add(Conv2D(32, kernel_size=5, activation="relu", input_shape=(24, 40, 2)))
     model.add(Conv2D(32, kernel_size=5, activation="relu"))
     model.add(MaxPool2D(pool_size=(2,2)))
     model.add(Dropout(0.25))

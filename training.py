@@ -11,11 +11,11 @@ import sklearn.metrics as metrics
 import os
 from matplotlib.ticker import PercentFormatter
 
-data_path = "./data"
+data_path = "./metrics"
 
 files = []
 for user in os.listdir(data_path):
-    if "DS_Store" in user or "zyh" in user:
+    if "DS_Store" in user:
         continue
     for condition in os.listdir(os.path.join(data_path, user)):
         files.append(pd.read_csv(os.path.join(data_path, user, condition)))
@@ -29,7 +29,7 @@ class_1_over = class_1.sample(class_count_0, replace=True)
 
 test = pd.concat([class_1_over, class_0], axis=0)
 
-X = test['emd_gaze_aug']
+X = test['emd_s_a']
 y = test['label']
 
 # print(len(X))
@@ -126,7 +126,7 @@ plt.show()
 #     plt.show()
 
 for test_user in os.listdir(data_path):
-    test_user = "zyh"
+    test_user = "cyr"
     print(test_user)
     files = []
     test_files = []
@@ -156,7 +156,7 @@ for test_user in os.listdir(data_path):
 
     test = pd.concat([class_1_over, class_0], axis=0)
 
-    X = test_df['emd']
+    X = test_df['emd_s_a']
     y = test_df['label']
 
     print(len(X))
@@ -166,7 +166,7 @@ for test_user in os.listdir(data_path):
     # X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)
     X_train = X
     y_train = y
-    X_test = test_df['emd']
+    X_test = test_df['emd_s_a']
     y_test = test_df['label']
     X_test = X_test.values.reshape(-1, 1)
 

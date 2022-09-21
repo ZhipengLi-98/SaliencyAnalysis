@@ -19,11 +19,9 @@ ys = {}
 X_train = []
 y_train = []
 
-users = ["lzj", "tmh"]
+users = ["tmh"]
 
 for user in os.listdir(aug_path):
-    if user not in users:
-        continue
     t_x = []
     t_y = []
     for condition in os.listdir(os.path.join(aug_path, user)):
@@ -66,9 +64,7 @@ for test_user in os.listdir(aug_path):
     X_test = []
     y_test = []
     for user in os.listdir(aug_path):
-        if user not in users:
-            continue
-        if user != test_user:
+        if user != test_user and user not in users:
             X_train.extend(Xs[user])
             y_train.extend(ys[user])
     
