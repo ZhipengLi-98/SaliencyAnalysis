@@ -2,10 +2,10 @@ import cv2
 import os
 from tqdm import tqdm
 
-video_path = "./video/"
-output_path = "./imgs/"
+video_path = "./formal/video/"
+output_path = "./formal/imgs/"
 
-user = "cyr"
+user = "test"
 
 user_path = os.path.join(video_path, user)
 output_user_path = os.path.join(output_path, user)
@@ -25,4 +25,8 @@ for folder in os.listdir(user_path):
         for i in tqdm(range(length)):
             success, image = vidcap.read()
             image = image[:, 80:]
-            cv2.imwrite(os.path.join(output_user_path, folder, video) + "/frame%d.jpg" % i, image)   
+            output = image
+            if (video.split("_")[-1].split(".")[0] != "all"):
+                dsize = (384, 224)
+                output = cv2.resize(image, dsize, interpolation=cv2.INTER_LANCZOS4)
+            cv2.imwrite(os.path.join(output_user_path, folder, video) + "/frame%d.jpg" % i, output)   
