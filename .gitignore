@@ -2,3 +2,6 @@
 /imgs/
 /src/
 /__pycache__/
+/augs/
+/gaze/
+/saliency/
