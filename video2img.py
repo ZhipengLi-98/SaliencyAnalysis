@@ -27,7 +27,7 @@ for folder in os.listdir(user_path):
             if image is None:
                 print(i)
                 continue
-            image = image[200:500, 300:900]
+            image = image[100:600, 200:1000]
             output = image
             if (video.split("_")[-1].split(".")[0] != "all"):
                 dsize = (384, 224)

@@ -6,6 +6,7 @@ from matplotlib import pyplot as plt
 from scipy.stats import wasserstein_distance
 import threading
 from scipy.ndimage import gaussian_filter
+import pandas as pd
 
 def get_signature_from_heatmap(hm):
     nr = hm.shape[0]
@@ -29,7 +30,7 @@ def get_signature_from_heatmap(hm):
     # print sig
     return sig
 
-def cal_emd(aug_path, gaze_path, sal_path, latency):
+def cal_emd(aug_path, gaze_path, sal_path, data_path, condition, latency):
     delay = int(latency / 1000 * 30)
     cnt = len(os.listdir(aug_path))
     idx = []
@@ -66,12 +67,13 @@ def cal_emd(aug_path, gaze_path, sal_path, latency):
             for i in range(aug_img.shape[0]):
                 for j in range(aug_img.shape[1]):
                     if cv2.pointPolygonTest(outline, (j, i), False) > 0:
-                        innerpoints.append([i, j, aug_gray[i][j]])
+                        innerpoints.append([i, j, aug_img[i][j][0], aug_img[i][j][1], aug_img[i][j][2]])
             
             if len(innerpoints) > 0:
                 innerpoints = np.array(innerpoints)
-                if (np.mean(innerpoints[:, 2])) < 70:
-                    print(img_index, np.mean(np.mean(innerpoints[:, 2])))
+                temp = [np.mean(innerpoints[:, 2]), np.mean(innerpoints[:, 3]), np.mean(innerpoints[:, 4])]
+                if (np.mean(temp) < 60 and np.std(temp) < 5) or (np.mean(temp) < 70 and np.std(temp) < 2):
+                    print(img_index, np.mean(temp), np.std(temp))
                     label = 1
                     idx.extend(temp_idx)
                     emd_ass.extend(temp_emd_ass)
@@ -91,30 +93,37 @@ def cal_emd(aug_path, gaze_path, sal_path, latency):
         gaze_dis = gaussian_filter(binary_gaze, sigma=5)
         gaze_dis = (gaze_dis - np.min(gaze_dis)) / (np.max(gaze_dis) - np.min(gaze_dis)) * 255.0
 
-        sal_img_resize = cv2.resize(sal_img, (16, 12), interpolation=cv2.INTER_LANCZOS4)
-        aug_resize = cv2.resize(aug_dis, (16, 12), interpolation=cv2.INTER_LANCZOS4)
-        gaze_resize = cv2.resize(gaze_dis, (16, 12), interpolation=cv2.INTER_LANCZOS4)
+        sal_img_resize = cv2.resize(sal_img, (48, 28), interpolation=cv2.INTER_LANCZOS4)
+        aug_resize = cv2.resize(aug_dis, (48, 28), interpolation=cv2.INTER_LANCZOS4)
+        gaze_resize = cv2.resize(gaze_dis, (48, 28), interpolation=cv2.INTER_LANCZOS4)
+
+        # cv2.imshow("sal", sal_img_resize / 255.0)
+        # cv2.waitKey(0)
+        # cv2.imshow("aug", aug_resize / 255.0)
+        # cv2.waitKey(0)
+        # cv2.imshow("gaze", gaze_resize / 255.0)
+        # cv2.waitKey(0)
 
         sal_flat = get_signature_from_heatmap(sal_img_resize)
         aug_flat = get_signature_from_heatmap(aug_resize)
         gaze_flat = get_signature_from_heatmap(gaze_resize)
 
-        # Not sure if the order matters
         emd_aug_sal, lowerbound, flow_matrix = cv2.EMD(aug_flat, sal_flat, distType=cv2.DIST_L2, lowerBound=0)
         emd_aug_gaze, lowerbound, flow_matrix = cv2.EMD(aug_flat, gaze_flat, distType=cv2.DIST_L2, lowerBound=0)
         temp_idx.append(img_index)
         temp_emd_ass.append(emd_aug_sal)
         temp_emd_ags.append(emd_aug_gaze)
-    print(len(idx))
-    print(len(emd_ass))
-    print(len(emd_ags))
-    print(len(labels))
+
+    if not os.path.exists(data_path):
+        os.makedirs(data_path)
+    df = pd.DataFrame({"index": idx, "emd_ani_sal": emd_ass, "emd_ani_gaze": emd_ags, "label": labels})
+    df.to_csv(os.path.join(data_path, condition) + ".csv")
     return idx, emd_ass, emd_ags, labels
 
 if __name__ == "__main__":
     imgs_path = "./formal/imgs"
     saliency_path = "./formal/saliency"
-    latency = 400
+    latency = 200
     for user in os.listdir(imgs_path):
         print(user)
         for condition in os.listdir(os.path.join(imgs_path, user)):
@@ -122,6 +131,7 @@ if __name__ == "__main__":
             aug_path = os.path.join(imgs_path, user, condition, condition + "_ani.mp4")
             gaze_path = os.path.join(imgs_path, user, condition, condition + "_gaze.mp4")
             sal_path = os.path.join(saliency_path, user, condition + "_all.mp4")
-            cal_emd(aug_path, gaze_path, sal_path, latency)
-            break
+            data_path = os.path.join("./data", user)
+            cal_emd(aug_path, gaze_path, sal_path, data_path, condition, latency)
+            # break
         break
