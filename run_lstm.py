@@ -27,6 +27,7 @@ for user in os.listdir(data_path):
         # df = pd.read_csv("./data/{}/data_{}_{}_{}.csv".format(user, condition.split("_")[1], condition.split("_")[2], user))
         idx = df["index"].tolist()
         X = df["emd_ani_sal"].tolist()
+        # X = df["emd_ani_gaze"].tolist()
         y = df["label"].tolist()
 
         for i in range(n_frames, len(idx)):
