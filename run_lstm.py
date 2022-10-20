@@ -1,6 +1,8 @@
 import os
 import pandas as pd
 import numpy as np
+import sklearn.metrics as metrics
+from matplotlib import pyplot as plt
 from random import random
 
 from keras.models import Sequential
@@ -9,34 +11,28 @@ from keras.layers import Dropout
 from keras.layers import Dense
 from keras.layers import Conv1D, MaxPooling1D
 
-aug_path = "./augs"
+data_path = "./data"
 
-n_frames = 60
+n_frames = 10
 
 Xs = {}
 ys = {}
 
-X_train = []
-y_train = []
-
-users = ["tmh"]
-
-for user in os.listdir(aug_path):
+for user in os.listdir(data_path):
     t_x = []
     t_y = []
-    for condition in os.listdir(os.path.join(aug_path, user)):
+    for condition in os.listdir(os.path.join(data_path, user)):
         print(user, condition)
-        df = pd.read_csv("./metrics/{}/{}.csv".format(user, condition))
+        df = pd.read_csv(os.path.join(data_path, user, condition))
         # df = pd.read_csv("./data/{}/data_{}_{}_{}.csv".format(user, condition.split("_")[1], condition.split("_")[2], user))
-        X = df["emd_s_a"].to_numpy()
-        y = df["label"].to_numpy()
-        temp_x = []
-        temp_y = []
-        for i in range(n_frames, len(X)):
-            temp_x.append(X[i - n_frames: i])
-            temp_y.append(y[i])
-        t_x.extend(temp_x)
-        t_y.extend(temp_y)
+        idx = df["index"].tolist()
+        X = df["emd_ani_sal"].tolist()
+        y = df["label"].tolist()
+
+        for i in range(n_frames, len(idx)):
+            if idx[i] - idx[i - n_frames] == n_frames:
+                t_x.append(X[i - n_frames: i])
+                t_y.append(y[i])
 
     df = pd.DataFrame({"img": t_x, "label": t_y})
     class_0 = df[df['label'] == 0]
@@ -55,32 +51,30 @@ for user in os.listdir(aug_path):
     Xs[user] = X
     ys[user] = y
 
-for test_user in os.listdir(aug_path):
-    if test_user not in users:
-        continue
+for test_user in os.listdir(data_path):
     print(test_user)
     X_train = []
     y_train = []
     X_test = []
     y_test = []
-    for user in os.listdir(aug_path):
-        if user != test_user and user not in users:
+    for user in os.listdir(data_path):
+        if user != test_user:
             X_train.extend(Xs[user])
             y_train.extend(ys[user])
     
-    train_test_length = int(len(Xs[test_user]) / 10)
-    X_train.extend(Xs[test_user][:train_test_length])
-    y_train.extend(ys[test_user][:train_test_length])
-    X_test.extend(Xs[test_user][train_test_length:])
-    y_test.extend(ys[test_user][train_test_length:])
+    # train_test_length = int(len(Xs[test_user]) / 10)
+    # X_train.extend(Xs[test_user][:train_test_length])
+    # y_train.extend(ys[test_user][:train_test_length])
+    # X_test.extend(Xs[test_user][train_test_length:])
+    # y_test.extend(ys[test_user][train_test_length:])
 
-    # for i in range(len(Xs[test_user])):
-    #     if random() > 0.9:
-    #         X_train.append(Xs[test_user][i])
-    #         y_train.append(ys[test_user][i])
-    #     else:
-    #         X_test.append(Xs[test_user][i])
-    #         y_test.append(ys[test_user][i])
+    for i in range(len(Xs[test_user])):
+        if random() > 0.9:
+            X_train.append(Xs[test_user][i])
+            y_train.append(ys[test_user][i])
+        else:
+            X_test.append(Xs[test_user][i])
+            y_test.append(ys[test_user][i])
     
     X_train = np.array(X_train).reshape(-1, n_frames, 1)
     y_train = np.array(y_train).reshape(-1, 1, 1)
@@ -101,6 +95,20 @@ for test_user in os.listdir(aug_path):
     model.compile(optimizer='adam', loss='mean_squared_error', metrics=['accuracy'])
     model.fit(X_train, y_train, epochs=10, batch_size=32, validation_data=(X_test, y_test))
     
+    y_pred = model.predict(X_test).ravel()
+    y_test = y_test.flatten()
+    fpr, tpr, threshold = metrics.roc_curve(y_test, y_pred)
+    roc_auc = metrics.auc(fpr, tpr)
+    
+    plt.plot(fpr, tpr, label = 'AUC = %0.2f' % roc_auc)
+    plt.legend(loc = 'lower right')
+    plt.plot([0, 1], [0, 1],'r--')
+    plt.xlim([0, 1])
+    plt.ylim([0, 1])
+    plt.ylabel('True Positive Rate')
+    plt.xlabel('False Positive Rate')
+    plt.show()
+
     # import visualkeras
     # from PIL import ImageFont
     # font = ImageFont.truetype("arial.ttf", 8)  # using comic sans is strictly prohibited!
