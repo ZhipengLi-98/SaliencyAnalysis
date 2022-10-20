@@ -9,6 +9,9 @@ from TASEDNet.model import TASED_v2
 from scipy.ndimage.filters import gaussian_filter
 from tqdm import tqdm
 
+# os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
+# os.environ["CUDA_VISIBLE_DEVICES"] = "1"
+
 def main(input_path, output_path):
     ''' read frames in path_indata and generate frame-wise saliency maps in path_output '''
     # optional two command-line arguments
@@ -43,6 +46,7 @@ def main(input_path, output_path):
         print ('weight file?')
 
     model = model.cuda()
+    print(torch.cuda.get_device_name(0))
     torch.backends.cudnn.benchmark = False
     model.eval()
 
@@ -102,7 +106,7 @@ if __name__ == '__main__':
     imgs_path = "./formal/imgs"
     saliency_path = "./formal/saliency"
     for user in os.listdir(imgs_path):
-        user = "plh"
+        user = "lzj"
         print(user)
         for condition in os.listdir(os.path.join(imgs_path, user)):
             print(condition)
