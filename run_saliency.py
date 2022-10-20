@@ -102,15 +102,13 @@ if __name__ == '__main__':
     imgs_path = "./formal/imgs"
     saliency_path = "./formal/saliency"
     for user in os.listdir(imgs_path):
-        user = "test"
+        user = "plh"
         print(user)
         for condition in os.listdir(os.path.join(imgs_path, user)):
-            condition = "test_scale_video_virtual2"
             print(condition)
             for folder in os.listdir(os.path.join(imgs_path, user, condition)):
                 if folder.split("_")[-1].split(".")[0] == "all":
                     input_path = os.path.join(imgs_path, user, condition, folder)
                     output_path = os.path.join(saliency_path, user, folder)
                     main(input_path, output_path)
-            break
         break

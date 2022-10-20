@@ -2,7 +2,6 @@ import os
 import cv2
 import numpy as np
 from tqdm import tqdm
-import pandas as pd
 from matplotlib import pyplot as plt
 from scipy.stats import wasserstein_distance
 import threading
@@ -30,21 +29,99 @@ def get_signature_from_heatmap(hm):
     # print sig
     return sig
 
+def cal_emd(aug_path, gaze_path, sal_path, latency):
+    delay = int(latency / 1000 * 30)
+    cnt = len(os.listdir(aug_path))
+    idx = []
+    emd_ags = []
+    emd_ass = []
+    labels = []
+    temp_idx = []
+    temp_emd_ags = []
+    temp_emd_ass = []
+    for img_index in tqdm(range(cnt)):
+        aug_img = cv2.imread(os.path.join(aug_path, "frame{}.jpg".format(img_index)))
+        gaze_img = cv2.imread(os.path.join(gaze_path, "frame{}.jpg".format(img_index)), cv2.IMREAD_GRAYSCALE).astype(dtype=np.float32)
+        sal_img = cv2.imread(os.path.join(sal_path, "%04d.png" % (img_index + 1)), cv2.IMREAD_GRAYSCALE).astype(dtype=np.float32)
+        
+        label = 0
+        aug_gray = cv2.cvtColor(aug_img, cv2.COLOR_RGB2GRAY)
+        ret, aug_binary = cv2.threshold(aug_gray, 20, 255, cv2.THRESH_BINARY)
+        contours, hierarchy = cv2.findContours(aug_binary, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+        innerpoints = []
+        outline = []
+        if len(contours) == 0:
+            # no augmentation
+            continue
+        else:
+            outline = contours[0]
+            if len(contours) > 1:
+                temp = []
+                num = 0
+                for c in contours:
+                    if len(c) > num:
+                        temp = c
+                        num = len(c)
+                outline = temp
+            for i in range(aug_img.shape[0]):
+                for j in range(aug_img.shape[1]):
+                    if cv2.pointPolygonTest(outline, (j, i), False) > 0:
+                        innerpoints.append([i, j, aug_gray[i][j]])
+            
+            if len(innerpoints) > 0:
+                innerpoints = np.array(innerpoints)
+                if (np.mean(innerpoints[:, 2])) < 70:
+                    print(img_index, np.mean(np.mean(innerpoints[:, 2])))
+                    label = 1
+                    idx.extend(temp_idx)
+                    emd_ass.extend(temp_emd_ass)
+                    emd_ags.extend(temp_emd_ags)
+                    if len(temp_idx) > delay:
+                        labels.extend([0 for temp_i in range(len(temp_idx) - delay)])
+                        labels.extend([1 for temp_i in range(delay)])
+                    else:
+                        labels.extend([1 for temp_i in range(len(temp_idx))])
+                    temp_idx.clear()
+                    temp_emd_ass.clear()
+                    temp_emd_ags.clear()
+        
+        aug_dis = gaussian_filter(aug_binary, sigma=5)
+        aug_dis = (aug_dis - np.min(aug_dis)) / (np.max(aug_dis) - np.min(aug_dis)) * 255.0
+        ret, binary_gaze = cv2.threshold(gaze_img, 20, 255, cv2.THRESH_BINARY)
+        gaze_dis = gaussian_filter(binary_gaze, sigma=5)
+        gaze_dis = (gaze_dis - np.min(gaze_dis)) / (np.max(gaze_dis) - np.min(gaze_dis)) * 255.0
+
+        sal_img_resize = cv2.resize(sal_img, (16, 12), interpolation=cv2.INTER_LANCZOS4)
+        aug_resize = cv2.resize(aug_dis, (16, 12), interpolation=cv2.INTER_LANCZOS4)
+        gaze_resize = cv2.resize(gaze_dis, (16, 12), interpolation=cv2.INTER_LANCZOS4)
+
+        sal_flat = get_signature_from_heatmap(sal_img_resize)
+        aug_flat = get_signature_from_heatmap(aug_resize)
+        gaze_flat = get_signature_from_heatmap(gaze_resize)
+
+        # Not sure if the order matters
+        emd_aug_sal, lowerbound, flow_matrix = cv2.EMD(aug_flat, sal_flat, distType=cv2.DIST_L2, lowerBound=0)
+        emd_aug_gaze, lowerbound, flow_matrix = cv2.EMD(aug_flat, gaze_flat, distType=cv2.DIST_L2, lowerBound=0)
+        temp_idx.append(img_index)
+        temp_emd_ass.append(emd_aug_sal)
+        temp_emd_ags.append(emd_aug_gaze)
+    print(len(idx))
+    print(len(emd_ass))
+    print(len(emd_ags))
+    print(len(labels))
+    return idx, emd_ass, emd_ags, labels
+
 if __name__ == "__main__":
     imgs_path = "./formal/imgs"
     saliency_path = "./formal/saliency"
+    latency = 400
     for user in os.listdir(imgs_path):
-        user = "test"
         print(user)
         for condition in os.listdir(os.path.join(imgs_path, user)):
-            condition = "test_pos_video_virtual2"
             print(condition)
-            aug_path = os.path.join(imgs_path, user, condition, condition)
-            for folder in os.listdir(os.path.join(imgs_path, user, condition)):
-                if folder.split("_")[-1].split(".")[0] == "ani":
-                    aug_path = os.path.join(imgs_path, user, condition, folder)
-                    input_path = os.path.join(imgs_path, user, condition, folder)
-                    output_path = os.path.join(saliency_path, user, folder)
-                    main(input_path, output_path)
+            aug_path = os.path.join(imgs_path, user, condition, condition + "_ani.mp4")
+            gaze_path = os.path.join(imgs_path, user, condition, condition + "_gaze.mp4")
+            sal_path = os.path.join(saliency_path, user, condition + "_all.mp4")
+            cal_emd(aug_path, gaze_path, sal_path, latency)
             break
         break

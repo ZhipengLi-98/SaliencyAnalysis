@@ -5,7 +5,7 @@ from tqdm import tqdm
 video_path = "./formal/video/"
 output_path = "./formal/imgs/"
 
-user = "test"
+user = "plh"
 
 user_path = os.path.join(video_path, user)
 output_user_path = os.path.join(output_path, user)
@@ -24,7 +24,10 @@ for folder in os.listdir(user_path):
         length = int(vidcap.get(cv2.CAP_PROP_FRAME_COUNT))
         for i in tqdm(range(length)):
             success, image = vidcap.read()
-            image = image[:, 80:]
+            if image is None:
+                print(i)
+                continue
+            image = image[200:500, 300:900]
             output = image
             if (video.split("_")[-1].split(".")[0] != "all"):
                 dsize = (384, 224)
