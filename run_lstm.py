@@ -22,7 +22,7 @@ for user in os.listdir(data_path):
     t_x = []
     t_y = []
     for condition in os.listdir(os.path.join(data_path, user)):
-        print(user, condition)
+        # print(user, condition)
         df = pd.read_csv(os.path.join(data_path, user, condition))
         # df = pd.read_csv("./data/{}/data_{}_{}_{}.csv".format(user, condition.split("_")[1], condition.split("_")[2], user))
         idx = df["index"].tolist()
@@ -43,8 +43,8 @@ for user in os.listdir(data_path):
 
     test = pd.concat([class_1_over, class_0], axis=0)
 
-    X = df['img'].tolist()
-    y = df['label'].tolist()
+    X = test['img'].tolist()
+    y = test['label'].tolist()
 
     X = np.array(X)
     y = np.array(y)
@@ -53,6 +53,7 @@ for user in os.listdir(data_path):
     ys[user] = y
 
 for test_user in os.listdir(data_path):
+    test_user = "plh"
     print(test_user)
     X_train = []
     y_train = []
@@ -86,15 +87,15 @@ for test_user in os.listdir(data_path):
     print(y_train.shape)
 
     model = Sequential()
-    model.add(Conv1D(filters=32, kernel_size=3, padding='same', activation='relu'))
-    model.add(MaxPooling1D(pool_size=2))
-    model.add(LSTM(64, return_sequences=True, input_shape=(X_train.shape[1], 1)))
+    model.add(Conv1D(filters=64, kernel_size=5, padding='same', activation='relu'))
+    model.add(MaxPooling1D(pool_size=4))
+    model.add(LSTM(128, return_sequences=True, input_shape=(X_train.shape[1], 1)))
     model.add(Dropout(0.2))
     model.add(LSTM(32))
     model.add(Dropout(0.2))
     model.add(Dense(1))
     model.compile(optimizer='adam', loss='mean_squared_error', metrics=['accuracy'])
-    model.fit(X_train, y_train, epochs=10, batch_size=32, validation_data=(X_test, y_test))
+    model.fit(X_train, y_train, epochs=100, batch_size=64, validation_data=(X_test, y_test))
     
     y_pred = model.predict(X_test).ravel()
     y_test = y_test.flatten()
@@ -108,8 +109,9 @@ for test_user in os.listdir(data_path):
     plt.ylim([0, 1])
     plt.ylabel('True Positive Rate')
     plt.xlabel('False Positive Rate')
-    plt.show()
-
+    plt.savefig("{}.jpg".format(test_user))
+    # plt.show()
+    break
     # import visualkeras
     # from PIL import ImageFont
     # font = ImageFont.truetype("arial.ttf", 8)  # using comic sans is strictly prohibited!
