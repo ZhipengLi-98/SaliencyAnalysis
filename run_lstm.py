@@ -53,7 +53,6 @@ for user in os.listdir(data_path):
     ys[user] = y
 
 for test_user in os.listdir(data_path):
-    test_user = "yyw"
     print(test_user)
     X_train = []
     y_train = []
@@ -71,7 +70,7 @@ for test_user in os.listdir(data_path):
     # y_test.extend(ys[test_user][train_test_length:])
 
     for i in range(len(Xs[test_user])):
-        if random() > 0.9:
+        if random() > 1:
             X_train.append(Xs[test_user][i])
             y_train.append(ys[test_user][i])
         else:
@@ -90,12 +89,12 @@ for test_user in os.listdir(data_path):
     model.add(Conv1D(filters=64, kernel_size=5, padding='same', activation='relu'))
     model.add(MaxPooling1D(pool_size=4))
     model.add(LSTM(128, return_sequences=True, input_shape=(X_train.shape[1], 1)))
-    model.add(Dropout(0.1))
+    model.add(Dropout(0.2))
     model.add(LSTM(32))
-    model.add(Dropout(0.1))
+    model.add(Dropout(0.2))
     model.add(Dense(1))
     model.compile(optimizer='adam', loss='mean_squared_error', metrics=['accuracy'])
-    model.fit(X_train, y_train, epochs=100, batch_size=32, validation_data=(X_test, y_test))
+    model.fit(X_train, y_train, epochs=100, batch_size=64, validation_data=(X_test, y_test))
     
     y_pred = model.predict(X_test).ravel()
     y_test = y_test.flatten()
@@ -109,7 +108,7 @@ for test_user in os.listdir(data_path):
     plt.ylim([0, 1])
     plt.ylabel('True Positive Rate')
     plt.xlabel('False Positive Rate')
-    plt.savefig("{}.jpg".format(test_user))
+    plt.savefig("{}_general.jpg".format(test_user))
     # plt.show()
     break
     # import visualkeras
