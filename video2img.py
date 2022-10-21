@@ -5,7 +5,7 @@ from tqdm import tqdm
 video_path = "./formal/video/"
 output_path = "./formal/imgs/"
 
-user = "yyw"
+user = "wzy"
 
 user_path = os.path.join(video_path, user)
 output_user_path = os.path.join(output_path, user)

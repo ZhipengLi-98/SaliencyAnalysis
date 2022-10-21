@@ -53,6 +53,7 @@ for user in os.listdir(data_path):
     ys[user] = y
 
 for test_user in os.listdir(data_path):
+    test_user = "wzy"
     print(test_user)
     X_train = []
     y_train = []
@@ -70,7 +71,7 @@ for test_user in os.listdir(data_path):
     # y_test.extend(ys[test_user][train_test_length:])
 
     for i in range(len(Xs[test_user])):
-        if random() > 1:
+        if random() > 0.9:
             X_train.append(Xs[test_user][i])
             y_train.append(ys[test_user][i])
         else:

@@ -72,7 +72,7 @@ def cal_emd(aug_path, gaze_path, sal_path, data_path, condition, latency):
             if len(innerpoints) > 0:
                 innerpoints = np.array(innerpoints)
                 temp = [np.mean(innerpoints[:, 2]), np.mean(innerpoints[:, 3]), np.mean(innerpoints[:, 4])]
-                if (np.mean(temp) < 45 and np.std(temp) < 2) or (np.mean(temp) < 70 and np.std(temp) < 1):
+                if ((np.mean(temp) < 45 and np.std(temp) < 2) or (np.mean(temp) < 70 and np.std(temp) < 1)) and np.std(temp) > 0.1:
                     print(img_index, np.mean(temp), np.std(temp))
                     label = 1
                     idx.extend(temp_idx)
@@ -126,9 +126,9 @@ def cal_emd(aug_path, gaze_path, sal_path, data_path, condition, latency):
 if __name__ == "__main__":
     imgs_path = "./formal/imgs"
     saliency_path = "./formal/saliency"
-    latency = 400
+    latency = 360
     for user in os.listdir(imgs_path):
-        user = "yyw"
+        user = "wzy"
         print(user)
         for condition in os.listdir(os.path.join(imgs_path, user)):
             print(condition)
