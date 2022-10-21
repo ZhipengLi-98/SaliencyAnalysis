@@ -43,8 +43,8 @@ for user in os.listdir(data_path):
 
     test = pd.concat([class_1_over, class_0], axis=0)
 
-    X = test['img'].tolist()
-    y = test['label'].tolist()
+    X = df['img'].tolist()
+    y = df['label'].tolist()
 
     X = np.array(X)
     y = np.array(y)
