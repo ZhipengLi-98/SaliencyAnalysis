@@ -53,7 +53,7 @@ for user in os.listdir(data_path):
     ys[user] = y
 
 for test_user in os.listdir(data_path):
-    test_user = "plh"
+    test_user = "yyw"
     print(test_user)
     X_train = []
     y_train = []
@@ -90,12 +90,12 @@ for test_user in os.listdir(data_path):
     model.add(Conv1D(filters=64, kernel_size=5, padding='same', activation='relu'))
     model.add(MaxPooling1D(pool_size=4))
     model.add(LSTM(128, return_sequences=True, input_shape=(X_train.shape[1], 1)))
-    model.add(Dropout(0.2))
+    model.add(Dropout(0.1))
     model.add(LSTM(32))
-    model.add(Dropout(0.2))
+    model.add(Dropout(0.1))
     model.add(Dense(1))
     model.compile(optimizer='adam', loss='mean_squared_error', metrics=['accuracy'])
-    model.fit(X_train, y_train, epochs=100, batch_size=64, validation_data=(X_test, y_test))
+    model.fit(X_train, y_train, epochs=100, batch_size=32, validation_data=(X_test, y_test))
     
     y_pred = model.predict(X_test).ravel()
     y_test = y_test.flatten()
