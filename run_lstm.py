@@ -53,7 +53,6 @@ for user in os.listdir(data_path):
     ys[user] = y
 
 for test_user in os.listdir(data_path):
-    test_user = "wzy"
     print(test_user)
     X_train = []
     y_train = []
@@ -71,7 +70,7 @@ for test_user in os.listdir(data_path):
     # y_test.extend(ys[test_user][train_test_length:])
 
     for i in range(len(Xs[test_user])):
-        if random() > 0.9:
+        if random() > 0.85:
             X_train.append(Xs[test_user][i])
             y_train.append(ys[test_user][i])
         else:
@@ -109,9 +108,9 @@ for test_user in os.listdir(data_path):
     plt.ylim([0, 1])
     plt.ylabel('True Positive Rate')
     plt.xlabel('False Positive Rate')
-    plt.savefig("{}_general.jpg".format(test_user))
+    plt.savefig("./lstm_results/{}.jpg".format(test_user))
     # plt.show()
-    break
+    # break
     # import visualkeras
     # from PIL import ImageFont
     # font = ImageFont.truetype("arial.ttf", 8)  # using comic sans is strictly prohibited!
