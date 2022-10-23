@@ -128,7 +128,7 @@ if __name__ == "__main__":
     saliency_path = "./formal/saliency"
     latency = 360
     for user in os.listdir(imgs_path):
-        user = "wrl"
+        user = "gww"
         print(user)
         for condition in os.listdir(os.path.join(imgs_path, user)):
             print(condition)
