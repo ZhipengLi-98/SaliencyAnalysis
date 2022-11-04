@@ -40,8 +40,11 @@ for user in os.listdir(data_path):
     class_1 = df[df['label'] == 1]
     class_count_0, class_count_1 = df['label'].value_counts()
     class_1_over = class_1.sample(class_count_0, replace=True)
+    # class_1_over = class_1.sample(10 * class_count_1, replace=True)
+    # class_0_down = class_0.sample(10 * class_count_1, replace=True)
 
     test = pd.concat([class_1_over, class_0], axis=0)
+    # test = pd.concat([class_1_over, class_0_down], axis=0)
 
     X = test['img'].tolist()
     y = test['label'].tolist()
@@ -70,7 +73,7 @@ for test_user in os.listdir(data_path):
     # y_test.extend(ys[test_user][train_test_length:])
 
     for i in range(len(Xs[test_user])):
-        if random() > 0.85:
+        if random() > 1.0:
             X_train.append(Xs[test_user][i])
             y_train.append(ys[test_user][i])
         else:
@@ -101,14 +104,14 @@ for test_user in os.listdir(data_path):
     fpr, tpr, threshold = metrics.roc_curve(y_test, y_pred)
     roc_auc = metrics.auc(fpr, tpr)
     
-    plt.plot(fpr, tpr, label = 'AUC = %0.2f' % roc_auc)
+    plt.plot(fpr, tpr, label = '{} AUC = %0.2f'.format(test_user) % roc_auc)
     plt.legend(loc = 'lower right')
     plt.plot([0, 1], [0, 1],'r--')
     plt.xlim([0, 1])
     plt.ylim([0, 1])
     plt.ylabel('True Positive Rate')
     plt.xlabel('False Positive Rate')
-    plt.savefig("./lstm_results/{}.jpg".format(test_user))
+plt.savefig("./lstm_results/leave_one_user_out.jpg")
     # plt.show()
     # break
     # import visualkeras
