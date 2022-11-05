@@ -14,6 +14,7 @@ from keras.layers import Conv1D, MaxPooling1D
 data_path = "./data"
 
 n_frames = 10
+data_per_condition = 600
 
 Xs = {}
 ys = {}
@@ -21,8 +22,11 @@ ys = {}
 for user in os.listdir(data_path):
     t_x = []
     t_y = []
+    temp = []
     for condition in os.listdir(os.path.join(data_path, user)):
         # print(user, condition)
+        temp_x = []
+        temp_y = []
         df = pd.read_csv(os.path.join(data_path, user, condition))
         # df = pd.read_csv("./data/{}/data_{}_{}_{}.csv".format(user, condition.split("_")[1], condition.split("_")[2], user))
         idx = df["index"].tolist()
@@ -30,21 +34,34 @@ for user in os.listdir(data_path):
         # X = df["emd_ani_gaze"].tolist()
         y = df["label"].tolist()
 
+        if len(X) == 0:
+            print(user, condition)
+            continue
+
         for i in range(n_frames, len(idx)):
             if idx[i] - idx[i - n_frames] == n_frames:
-                t_x.append(X[i - n_frames: i])
-                t_y.append(y[i])
+                temp_x.append(X[i - n_frames: i])
+                temp_y.append(y[i])
+        df = pd.DataFrame({"img": temp_x, "label": temp_y})
+        class_0 = df[df['label'] == 0]
+        class_1 = df[df['label'] == 1]
 
-    df = pd.DataFrame({"img": t_x, "label": t_y})
-    class_0 = df[df['label'] == 0]
-    class_1 = df[df['label'] == 1]
-    class_count_0, class_count_1 = df['label'].value_counts()
-    class_1_over = class_1.sample(class_count_0, replace=True)
-    # class_1_over = class_1.sample(10 * class_count_1, replace=True)
-    # class_0_down = class_0.sample(10 * class_count_1, replace=True)
+        class_0_resample = class_0.sample(data_per_condition, replace=True)
+        class_1_resample = class_1.sample(data_per_condition, replace=True)
+        temp.append(class_0_resample)
+        temp.append(class_1_resample)
 
-    test = pd.concat([class_1_over, class_0], axis=0)
-    # test = pd.concat([class_1_over, class_0_down], axis=0)
+    # df = pd.DataFrame({"img": t_x, "label": t_y})
+    # class_0 = df[df['label'] == 0]
+    # class_1 = df[df['label'] == 1]
+    # class_count_0, class_count_1 = df['label'].value_counts()
+    # class_1_over = class_1.sample(class_count_0, replace=True)
+    # # class_1_over = class_1.sample(10 * class_count_1, replace=True)
+    # # class_0_down = class_0.sample(10 * class_count_1, replace=True)
+
+    # test = pd.concat([class_1_over, class_0], axis=0)
+    # # test = pd.concat([class_1_over, class_0_down], axis=0)
+    test = pd.concat(temp, axis=0)
 
     X = test['img'].tolist()
     y = test['label'].tolist()
