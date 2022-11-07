@@ -14,7 +14,7 @@ from keras.layers import Conv1D, MaxPooling1D
 data_path = "./data"
 
 n_frames = 10
-data_per_condition = 600
+data_per_condition = 1200
 
 Xs = {}
 ys = {}
@@ -90,7 +90,7 @@ for test_user in os.listdir(data_path):
     # y_test.extend(ys[test_user][train_test_length:])
 
     for i in range(len(Xs[test_user])):
-        if random() > 1.0:
+        if random() > 1:
             X_train.append(Xs[test_user][i])
             y_train.append(ys[test_user][i])
         else:

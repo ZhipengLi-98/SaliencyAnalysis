@@ -137,4 +137,4 @@ if __name__ == "__main__":
             data_path = os.path.join("./data", user)
             cal_emd(aug_path, gaze_path, sal_path, data_path, condition, latency)
             # break
-        break
+        # break
