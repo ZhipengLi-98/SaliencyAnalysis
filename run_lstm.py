@@ -79,7 +79,7 @@ for test_user in os.listdir(data_path):
     X_test = []
     y_test = []
     for user in os.listdir(data_path):
-        if user != test_user:
+        if user != test_user and user in Xs.keys():
             X_train.extend(Xs[user])
             y_train.extend(ys[user])
     
@@ -90,7 +90,7 @@ for test_user in os.listdir(data_path):
     # y_test.extend(ys[test_user][train_test_length:])
 
     for i in range(len(Xs[test_user])):
-        if random() > 1:
+        if random() > 0.9:
             X_train.append(Xs[test_user][i])
             y_train.append(ys[test_user][i])
         else:
@@ -128,7 +128,7 @@ for test_user in os.listdir(data_path):
     plt.ylim([0, 1])
     plt.ylabel('True Positive Rate')
     plt.xlabel('False Positive Rate')
-plt.savefig("./lstm_results/leave_one_user_out.jpg")
+plt.savefig("./lstm_results/leave_90_user_out.jpg")
     # plt.show()
     # break
     # import visualkeras
