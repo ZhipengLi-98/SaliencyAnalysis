@@ -41,6 +41,7 @@ def cal_emd(aug_path, gaze_path, sal_path, data_path, condition, latency):
     temp_emd_ags = []
     temp_emd_ass = []
     for img_index in tqdm(range(cnt)):
+        # img_index = 3233
         try:
             aug_img = cv2.imread(os.path.join(aug_path, "frame{}.jpg".format(img_index)))
             gaze_img = cv2.imread(os.path.join(gaze_path, "frame{}.jpg".format(img_index)), cv2.IMREAD_GRAYSCALE).astype(dtype=np.float32)
@@ -131,11 +132,8 @@ if __name__ == "__main__":
     saliency_path = "./formal/saliency"
     latency = 360
     for user in os.listdir(imgs_path):
-        user = "yj"
         print(user)
         for condition in os.listdir(os.path.join(imgs_path, user)):
-            if "virtual" not in condition:
-                continue
             print(condition)
             aug_path = os.path.join(imgs_path, user, condition, condition + "_ani.mp4")
             gaze_path = os.path.join(imgs_path, user, condition, condition + "_gaze.mp4")

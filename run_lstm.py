@@ -72,6 +72,38 @@ for user in os.listdir(data_path):
     Xs[user] = X
     ys[user] = y
 
+def test_one_trial(test_user):
+    temp_x = []
+    temp_y = []
+    temp_x_train = []
+    temp_y_train = []
+    flag = True
+    for condition in os.listdir(os.path.join(data_path, test_user)):
+        # print(user, condition)
+        df = pd.read_csv(os.path.join(data_path, test_user, condition))
+        # df = pd.read_csv("./data/{}/data_{}_{}_{}.csv".format(user, condition.split("_")[1], condition.split("_")[2], user))
+        idx = df["index"].tolist()
+        X = df["emd_ani_sal"].tolist()
+        # X = df["emd_ani_gaze"].tolist()
+        y = df["label"].tolist()
+
+        if len(X) == 0:
+            print(test_user, condition)
+            continue
+
+        for i in range(n_frames, len(idx)):
+            if idx[i] - idx[i - n_frames] == n_frames:
+                if flag:
+                    temp_x_train.append(X[i - n_frames: i])
+                    temp_y_train.append(y[i])
+                else:
+                    temp_x.append(X[i - n_frames: i])
+                    tempy_y.append(y[i])
+                if y[i] == "1":
+                    flag = False
+    
+    return temp_x, temp_y, temp_x_train, temp_y_train
+
 for test_user in os.listdir(data_path):
     print(test_user)
     X_train = []
@@ -89,13 +121,16 @@ for test_user in os.listdir(data_path):
     # X_test.extend(Xs[test_user][train_test_length:])
     # y_test.extend(ys[test_user][train_test_length:])
 
-    for i in range(len(Xs[test_user])):
-        if random() > 0.9:
-            X_train.append(Xs[test_user][i])
-            y_train.append(ys[test_user][i])
-        else:
-            X_test.append(Xs[test_user][i])
-            y_test.append(ys[test_user][i])
+    X_train_temp, y_train_temp, X_test, y_test = test_one_trial(test_user)
+    X_train.extend(X_train_temp)
+    y_train.extend(y_train_temp)
+    # for i in range(len(Xs[test_user])):
+    #     if random() > 0.9:
+    #         X_train.append(Xs[test_user][i])
+    #         y_train.append(ys[test_user][i])
+    #     else:
+    #         X_test.append(Xs[test_user][i])
+    #         y_test.append(ys[test_user][i])
     
     X_train = np.array(X_train).reshape(-1, n_frames, 1)
     y_train = np.array(y_train).reshape(-1, 1, 1)
@@ -104,6 +139,8 @@ for test_user in os.listdir(data_path):
 
     print(X_train.shape)
     print(y_train.shape)
+    print(X_test.shape)
+    print(y_test.shape)
 
     model = Sequential()
     model.add(Conv1D(filters=64, kernel_size=5, padding='same', activation='relu'))
@@ -122,13 +159,14 @@ for test_user in os.listdir(data_path):
     roc_auc = metrics.auc(fpr, tpr)
     
     plt.plot(fpr, tpr, label = '{} AUC = %0.2f'.format(test_user) % roc_auc)
-    plt.legend(loc = 'lower right')
+    plt.legend(loc = 'lower right', fontsize="small", bbox_to_anchor=(1.2, 0))
     plt.plot([0, 1], [0, 1],'r--')
     plt.xlim([0, 1])
     plt.ylim([0, 1])
     plt.ylabel('True Positive Rate')
     plt.xlabel('False Positive Rate')
-plt.savefig("./lstm_results/leave_90_user_out.jpg")
+    # plt.show()
+plt.savefig("./lstm_results/leave_one_trial_out.jpg")
     # plt.show()
     # break
     # import visualkeras
