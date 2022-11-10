@@ -14,7 +14,7 @@ from keras.layers import Conv1D, MaxPooling1D
 data_path = "./data"
 
 n_frames = 10
-data_per_condition = 12
+data_per_condition = 1200
 
 Xs = {}
 ys = {}
@@ -177,7 +177,7 @@ for test_user in os.listdir(data_path):
     model.add(Dropout(0.2))
     model.add(Dense(1))
     model.compile(optimizer='adam', loss='mean_squared_error', metrics=['accuracy'])
-    model.fit(X_train, y_train, epochs=1, batch_size=64, validation_data=(X_test, y_test))
+    model.fit(X_train, y_train, epochs=150, batch_size=64, validation_data=(X_test, y_test))
     
     y_pred = model.predict(X_test).ravel()
     y_test = y_test.flatten()
