@@ -14,7 +14,7 @@ from keras.layers import Conv1D, MaxPooling1D
 data_path = "./data"
 
 n_frames = 10
-data_per_condition = 1200
+data_per_condition = 12
 
 Xs = {}
 ys = {}
@@ -72,6 +72,31 @@ for user in os.listdir(data_path):
     Xs[user] = X
     ys[user] = y
 
+def test_unbalanced_one_user(test_user):
+    temp_x = []
+    temp_y = []
+    temp_x_train = []
+    temp_y_train = []
+    for condition in os.listdir(os.path.join(data_path, test_user)):
+        # print(user, condition)
+        df = pd.read_csv(os.path.join(data_path, test_user, condition))
+        # df = pd.read_csv("./data/{}/data_{}_{}_{}.csv".format(user, condition.split("_")[1], condition.split("_")[2], user))
+        idx = df["index"].tolist()
+        X = df["emd_ani_sal"].tolist()
+        # X = df["emd_ani_gaze"].tolist()
+        y = df["label"].tolist()
+
+        if len(X) == 0:
+            print(test_user, condition)
+            continue
+
+        for i in range(n_frames, len(idx)):
+            if idx[i] - idx[i - n_frames] == n_frames:
+                temp_x.append(X[i - n_frames: i])
+                tempy_y.append(y[i])
+    
+    return temp_x, temp_y, temp_x_train, temp_y_train
+
 def test_one_trial(test_user):
     temp_x = []
     temp_y = []
@@ -104,6 +129,7 @@ def test_one_trial(test_user):
     
     return temp_x, temp_y, temp_x_train, temp_y_train
 
+fig = plt.figure(figsize=(12, 6))
 for test_user in os.listdir(data_path):
     print(test_user)
     X_train = []
@@ -151,7 +177,7 @@ for test_user in os.listdir(data_path):
     model.add(Dropout(0.2))
     model.add(Dense(1))
     model.compile(optimizer='adam', loss='mean_squared_error', metrics=['accuracy'])
-    model.fit(X_train, y_train, epochs=150, batch_size=64, validation_data=(X_test, y_test))
+    model.fit(X_train, y_train, epochs=1, batch_size=64, validation_data=(X_test, y_test))
     
     y_pred = model.predict(X_test).ravel()
     y_test = y_test.flatten()
@@ -166,6 +192,7 @@ for test_user in os.listdir(data_path):
     plt.ylabel('True Positive Rate')
     plt.xlabel('False Positive Rate')
     # plt.show()
+fig.tight_layout()
 plt.savefig("./lstm_results/leave_one_trial_out.jpg")
     # plt.show()
     # break
