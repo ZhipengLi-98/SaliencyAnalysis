@@ -15,6 +15,7 @@ data_path = "./data"
 
 n_frames = 10
 data_per_condition = 1200
+test_trials = 5
 
 Xs = {}
 ys = {}
@@ -72,37 +73,13 @@ for user in os.listdir(data_path):
     Xs[user] = X
     ys[user] = y
 
-def test_unbalanced_one_user(test_user):
-    temp_x = []
-    temp_y = []
-    temp_x_train = []
-    temp_y_train = []
-    for condition in os.listdir(os.path.join(data_path, test_user)):
-        # print(user, condition)
-        df = pd.read_csv(os.path.join(data_path, test_user, condition))
-        # df = pd.read_csv("./data/{}/data_{}_{}_{}.csv".format(user, condition.split("_")[1], condition.split("_")[2], user))
-        idx = df["index"].tolist()
-        X = df["emd_ani_sal"].tolist()
-        # X = df["emd_ani_gaze"].tolist()
-        y = df["label"].tolist()
-
-        if len(X) == 0:
-            print(test_user, condition)
-            continue
-
-        for i in range(n_frames, len(idx)):
-            if idx[i] - idx[i - n_frames] == n_frames:
-                temp_x.append(X[i - n_frames: i])
-                tempy_y.append(y[i])
-    
-    return temp_x, temp_y, temp_x_train, temp_y_train
-
-def test_one_trial(test_user):
+def test_trials(test_user, trial_number):
     temp_x = []
     temp_y = []
     temp_x_train = []
     temp_y_train = []
     flag = True
+    trial_cnt = 0
     for condition in os.listdir(os.path.join(data_path, test_user)):
         # print(user, condition)
         df = pd.read_csv(os.path.join(data_path, test_user, condition))
@@ -123,8 +100,10 @@ def test_one_trial(test_user):
                     temp_y_train.append(y[i])
                 else:
                     temp_x.append(X[i - n_frames: i])
-                    tempy_y.append(y[i])
+                    temp_y.append(y[i])
                 if y[i] == "1":
+                    trial_cnt += 1
+                if trial_cnt == trial_number:
                     flag = False
     
     return temp_x, temp_y, temp_x_train, temp_y_train
@@ -147,7 +126,7 @@ for test_user in os.listdir(data_path):
     # X_test.extend(Xs[test_user][train_test_length:])
     # y_test.extend(ys[test_user][train_test_length:])
 
-    X_train_temp, y_train_temp, X_test, y_test = test_one_trial(test_user)
+    X_train_temp, y_train_temp, X_test, y_test = test_trials(test_user, test_trials)
     X_train.extend(X_train_temp)
     y_train.extend(y_train_temp)
     # for i in range(len(Xs[test_user])):
@@ -193,7 +172,7 @@ for test_user in os.listdir(data_path):
     plt.xlabel('False Positive Rate')
     # plt.show()
 fig.tight_layout()
-plt.savefig("./lstm_results/leave_one_trial_out.jpg")
+plt.savefig("./lstm_results/leave_{}_trials_out.jpg".format(test_trials))
     # plt.show()
     # break
     # import visualkeras
