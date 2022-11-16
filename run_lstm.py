@@ -4,12 +4,19 @@ import numpy as np
 import sklearn.metrics as metrics
 from matplotlib import pyplot as plt
 from random import random
+import argparse
 
 from keras.models import Sequential
 from keras.layers import LSTM
 from keras.layers import Dropout
 from keras.layers import Dense
 from keras.layers import Conv1D, MaxPooling1D
+from keras.models import load_model
+
+parser = argparse.ArgumentParser()
+parser.add_argument("-u", "--username", action="store")
+parser.add_argument("-c", "--command", action="store")
+args = parser.parse_args()
 
 data_path = "./data"
 
@@ -78,7 +85,7 @@ def test_trials(test_user, trial_number):
     temp_y = []
     temp_x_train = []
     temp_y_train = []
-    flag = True
+    flag = False if trial_number == 0 else True
     trial_cnt = 0
     for condition in os.listdir(os.path.join(data_path, test_user)):
         # print(user, condition)
@@ -106,91 +113,117 @@ def test_trials(test_user, trial_number):
                 if trial_cnt == trial_number:
                     flag = False
     
-    df = pd.DataFrame({"img": temp_x_train, "label": temp_y_train})
-    class_0 = df[df['label'] == 0]
-    class_1 = df[df['label'] == 1]
+    if len(temp_x_train) * len(temp_y_train) > 0:
+        df = pd.DataFrame({"img": temp_x_train, "label": temp_y_train})
+        class_0 = df[df['label'] == 0]
+        class_1 = df[df['label'] == 1]
 
-    class_0_resample = class_0.sample(data_per_condition, replace=True)
-    class_1_resample = class_1.sample(data_per_condition, replace=True)
-    temp = []
-    temp.append(class_0_resample)
-    temp.append(class_1_resample)
-    test = pd.concat(temp, axis=0)
+        class_0_resample = class_0.sample(data_per_condition, replace=True)
+        class_1_resample = class_1.sample(data_per_condition, replace=True)
+        temp = []
+        temp.append(class_0_resample)
+        temp.append(class_1_resample)
+        test = pd.concat(temp, axis=0)
 
-    return test['img'].tolist(), test['label'].tolist(), temp_x, temp_y
-    return temp_x_train, temp_y_train, temp_x, temp_y
+        return test['img'].tolist(), test['label'].tolist(), temp_x, temp_y
+        return temp_x_train, temp_y_train, temp_x, temp_y
+    else:
+        return temp_x_train, temp_y_train, temp_x, temp_y
 
-fig = plt.figure(figsize=(12, 6))
-for test_user in os.listdir(data_path):
-    print(test_user)
-    X_train = []
-    y_train = []
-    X_test = []
-    y_test = []
-    for user in os.listdir(data_path):
-        if user != test_user and user in Xs.keys():
-            X_train.extend(Xs[user])
-            y_train.extend(ys[user])
-    
-    # train_test_length = int(len(Xs[test_user]) / 10)
-    # X_train.extend(Xs[test_user][:train_test_length])
-    # y_train.extend(ys[test_user][:train_test_length])
-    # X_test.extend(Xs[test_user][train_test_length:])
-    # y_test.extend(ys[test_user][train_test_length:])
+if args.command == "train":
+    for test_user in os.listdir(data_path):
+        print(test_user)
+        X_train = []
+        y_train = []
+        X_test = []
+        y_test = []
+        for user in os.listdir(data_path):
+            if user != test_user and user in Xs.keys():
+                X_train.extend(Xs[user])
+                y_train.extend(ys[user])
+        
+        # train_test_length = int(len(Xs[test_user]) / 10)
+        # X_train.extend(Xs[test_user][:train_test_length])
+        # y_train.extend(ys[test_user][:train_test_length])
+        # X_test.extend(Xs[test_user][train_test_length:])
+        # y_test.extend(ys[test_user][train_test_length:])
 
-    X_train_temp, y_train_temp, X_test, y_test = test_trials(test_user, trials)
-    X_train.extend(X_train_temp)
-    y_train.extend(y_train_temp)
-    # for i in range(len(Xs[test_user])):
-    #     if random() > 0.9:
-    #         X_train.append(Xs[test_user][i])
-    #         y_train.append(ys[test_user][i])
-    #     else:
-    #         X_test.append(Xs[test_user][i])
-    #         y_test.append(ys[test_user][i])
-    
-    X_train = np.array(X_train).reshape(-1, n_frames, 1)
-    y_train = np.array(y_train).reshape(-1, 1, 1)
-    X_test = np.array(X_test).reshape(-1, n_frames, 1)
-    y_test = np.array(y_test).reshape(-1, 1, 1)
+        X_train_temp, y_train_temp, X_test, y_test = test_trials(test_user, 0)
+        # X_train.extend(X_train_temp)
+        # y_train.extend(y_train_temp)
+        # for i in range(len(Xs[test_user])):
+        #     if random() > 0.9:
+        #         X_train.append(Xs[test_user][i])
+        #         y_train.append(ys[test_user][i])
+        #     else:
+        #         X_test.append(Xs[test_user][i])
+        #         y_test.append(ys[test_user][i])
+        
+        X_train = np.array(X_train).reshape(-1, n_frames, 1)
+        y_train = np.array(y_train).reshape(-1, 1, 1)
+        X_test = np.array(X_test).reshape(-1, n_frames, 1)
+        y_test = np.array(y_test).reshape(-1, 1, 1)
 
-    print(X_train.shape)
-    print(y_train.shape)
-    print(X_test.shape)
-    print(y_test.shape)
+        # print(X_train.shape)
+        # print(y_train.shape)
+        # print(X_test.shape)
+        # print(y_test.shape)
 
-    model = Sequential()
-    model.add(Conv1D(filters=64, kernel_size=5, padding='same', activation='relu'))
-    model.add(MaxPooling1D(pool_size=4))
-    model.add(LSTM(128, return_sequences=True, input_shape=(X_train.shape[1], 1)))
-    model.add(Dropout(0.2))
-    model.add(LSTM(32))
-    model.add(Dropout(0.2))
-    model.add(Dense(1))
-    model.compile(optimizer='adam', loss='mean_squared_error', metrics=['accuracy'])
-    model.fit(X_train, y_train, epochs=5, batch_size=64, validation_data=(X_test, y_test))
-    
-    y_pred = model.predict(X_test).ravel()
-    y_test = y_test.flatten()
-    fpr, tpr, threshold = metrics.roc_curve(y_test, y_pred)
-    roc_auc = metrics.auc(fpr, tpr)
+        model = Sequential()
+        model.add(Conv1D(filters=64, kernel_size=5, padding='same', activation='relu'))
+        model.add(MaxPooling1D(pool_size=4))
+        model.add(LSTM(128, return_sequences=True, input_shape=(X_train.shape[1], 1)))
+        model.add(Dropout(0.2))
+        model.add(LSTM(32))
+        model.add(Dropout(0.2))
+        model.add(Dense(1))
+        model.compile(optimizer='adam', loss='mean_squared_error', metrics=['accuracy'])
+        model.fit(X_train, y_train, epochs=10, batch_size=64, validation_data=(X_test, y_test))
+        
+        y_pred = model.predict(X_test).ravel()
+        y_test = y_test.flatten()
+        fpr, tpr, threshold = metrics.roc_curve(y_test, y_pred)
+        roc_auc = metrics.auc(fpr, tpr)
 
-    print(test_user, roc_auc)
-    
-    plt.plot(fpr, tpr, label = '{} AUC = %0.2f'.format(test_user) % roc_auc)
-    plt.legend(loc = 'lower right', fontsize="small", bbox_to_anchor=(1.2, 0))
-    plt.plot([0, 1], [0, 1],'r--')
-    plt.xlim([0, 1])
-    plt.ylim([0, 1])
-    plt.ylabel('True Positive Rate')
-    plt.xlabel('False Positive Rate')
-    # plt.show()
-fig.tight_layout()
-plt.savefig("./lstm_results/leave_{}_trials_out_balanced.jpg".format(trials))
-    # plt.show()
-    # break
-    # import visualkeras
-    # from PIL import ImageFont
-    # font = ImageFont.truetype("arial.ttf", 8)  # using comic sans is strictly prohibited!
-    # visualkeras.layered_view(model, to_file='lstm.png', legend=True, font=font).show() # write and show
+        print(test_user, roc_auc)
+
+        model.save("./saved_model/{}.h5".format(test_user))
+        del model
+
+if args.command == "test":
+    fig = plt.figure(figsize=(12, 6))
+    for test_user in os.listdir(data_path):
+        model = load_model("./saved_model/{}.h5".format(test_user))
+        X_train_temp, y_train_temp, X_test, y_test = test_trials(test_user, trials)
+        X_train_temp = np.array(X_train_temp).reshape(-1, n_frames, 1)
+        y_train_temp = np.array(y_train_temp).reshape(-1, 1, 1)
+        X_test = np.array(X_test).reshape(-1, n_frames, 1)
+        y_test = np.array(y_test).reshape(-1, 1, 1)
+
+        model.fit(X_train_temp, y_train_temp, epochs=10, batch_size=64, validation_data=(X_test, y_test))
+
+        y_pred = model.predict(X_test).ravel()
+        y_test = y_test.flatten()
+        fpr, tpr, threshold = metrics.roc_curve(y_test, y_pred)
+        roc_auc = metrics.auc(fpr, tpr)
+
+        print(test_user, roc_auc)
+        
+        plt.plot(fpr, tpr, label = '{} AUC = %0.2f'.format(test_user) % roc_auc)
+        plt.legend(loc = 'lower right', fontsize="small", bbox_to_anchor=(1.2, 0))
+        plt.plot([0, 1], [0, 1],'r--')
+        plt.xlim([0, 1])
+        plt.ylim([0, 1])
+        plt.ylabel('True Positive Rate')
+        plt.xlabel('False Positive Rate')
+        # plt.show()
+    fig.tight_layout()
+    plt.savefig("./lstm_results/leave_{}_trials_out_balanced.jpg".format(trials))
+        # plt.show()
+
+
+# import visualkeras
+# from PIL import ImageFont
+# font = ImageFont.truetype("arial.ttf", 8)  # using comic sans is strictly prohibited!
+# visualkeras.layered_view(model, to_file='lstm.png', legend=True, font=font).show() # write and show
     
