@@ -6,7 +6,7 @@ video_path = "./formal/video/"
 output_path = "./formal/imgs/"
 
 for user in os.listdir(video_path):
-
+    user = "michael"
     user_path = os.path.join(video_path, user)
     output_user_path = os.path.join(output_path, user)
 
@@ -33,3 +33,4 @@ for user in os.listdir(video_path):
                     dsize = (384, 224)
                     output = cv2.resize(image, dsize, interpolation=cv2.INTER_LANCZOS4)
                 cv2.imwrite(os.path.join(output_user_path, folder, video) + "/frame%d.jpg" % i, output)   
+    break

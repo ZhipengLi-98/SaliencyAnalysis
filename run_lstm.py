@@ -15,7 +15,7 @@ data_path = "./data"
 
 n_frames = 10
 data_per_condition = 1200
-test_trials = 5
+trials = 5
 
 Xs = {}
 ys = {}
@@ -101,12 +101,24 @@ def test_trials(test_user, trial_number):
                 else:
                     temp_x.append(X[i - n_frames: i])
                     temp_y.append(y[i])
-                if y[i] == "1":
+                if y[i] == 1:
                     trial_cnt += 1
                 if trial_cnt == trial_number:
                     flag = False
     
-    return temp_x, temp_y, temp_x_train, temp_y_train
+    df = pd.DataFrame({"img": temp_x_train, "label": temp_y_train})
+    class_0 = df[df['label'] == 0]
+    class_1 = df[df['label'] == 1]
+
+    class_0_resample = class_0.sample(data_per_condition, replace=True)
+    class_1_resample = class_1.sample(data_per_condition, replace=True)
+    temp = []
+    temp.append(class_0_resample)
+    temp.append(class_1_resample)
+    test = pd.concat(temp, axis=0)
+
+    return test['img'].tolist(), test['label'].tolist(), temp_x, temp_y
+    return temp_x_train, temp_y_train, temp_x, temp_y
 
 fig = plt.figure(figsize=(12, 6))
 for test_user in os.listdir(data_path):
@@ -126,7 +138,7 @@ for test_user in os.listdir(data_path):
     # X_test.extend(Xs[test_user][train_test_length:])
     # y_test.extend(ys[test_user][train_test_length:])
 
-    X_train_temp, y_train_temp, X_test, y_test = test_trials(test_user, test_trials)
+    X_train_temp, y_train_temp, X_test, y_test = test_trials(test_user, trials)
     X_train.extend(X_train_temp)
     y_train.extend(y_train_temp)
     # for i in range(len(Xs[test_user])):
@@ -156,12 +168,14 @@ for test_user in os.listdir(data_path):
     model.add(Dropout(0.2))
     model.add(Dense(1))
     model.compile(optimizer='adam', loss='mean_squared_error', metrics=['accuracy'])
-    model.fit(X_train, y_train, epochs=150, batch_size=64, validation_data=(X_test, y_test))
+    model.fit(X_train, y_train, epochs=5, batch_size=64, validation_data=(X_test, y_test))
     
     y_pred = model.predict(X_test).ravel()
     y_test = y_test.flatten()
     fpr, tpr, threshold = metrics.roc_curve(y_test, y_pred)
     roc_auc = metrics.auc(fpr, tpr)
+
+    print(test_user, roc_auc)
     
     plt.plot(fpr, tpr, label = '{} AUC = %0.2f'.format(test_user) % roc_auc)
     plt.legend(loc = 'lower right', fontsize="small", bbox_to_anchor=(1.2, 0))
@@ -172,7 +186,7 @@ for test_user in os.listdir(data_path):
     plt.xlabel('False Positive Rate')
     # plt.show()
 fig.tight_layout()
-plt.savefig("./lstm_results/leave_{}_trials_out.jpg".format(test_trials))
+plt.savefig("./lstm_results/leave_{}_trials_out_balanced.jpg".format(trials))
     # plt.show()
     # break
     # import visualkeras
