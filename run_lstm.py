@@ -21,7 +21,7 @@ args = parser.parse_args()
 data_path = "./data"
 
 n_frames = 10
-data_per_condition = 1200
+data_per_condition = 2400
 trials = 5
 
 Xs = {}
@@ -170,7 +170,7 @@ if args.command == "train":
         # print(y_test.shape)
 
         model = Sequential()
-        model.add(Conv1D(filters=64, kernel_size=5, padding='same', activation='relu'))
+        model.add(Conv1D(filters=64, kernel_size=5, padding='same', activation='sigmoid'))
         model.add(MaxPooling1D(pool_size=4))
         model.add(LSTM(128, return_sequences=True, input_shape=(X_train.shape[1], 1)))
         model.add(Dropout(0.2))
@@ -178,7 +178,7 @@ if args.command == "train":
         model.add(Dropout(0.2))
         model.add(Dense(1))
         model.compile(optimizer='adam', loss='mean_squared_error', metrics=['accuracy'])
-        model.fit(X_train, y_train, epochs=10, batch_size=64, validation_data=(X_test, y_test))
+        model.fit(X_train, y_train, epochs=100, batch_size=128, validation_data=(X_test, y_test))
         
         y_pred = model.predict(X_test).ravel()
         y_test = y_test.flatten()
@@ -187,20 +187,20 @@ if args.command == "train":
 
         print(test_user, roc_auc)
 
-        model.save("./saved_model/{}.h5".format(test_user))
+        model.save("./saved_model/{}_sigmoid.h5".format(test_user))
         del model
 
 if args.command == "test":
     fig = plt.figure(figsize=(12, 6))
     for test_user in os.listdir(data_path):
-        model = load_model("./saved_model/{}.h5".format(test_user))
+        model = load_model("./saved_model/{}_sigmoid.h5".format(test_user))
         X_train_temp, y_train_temp, X_test, y_test = test_trials(test_user, trials)
         X_train_temp = np.array(X_train_temp).reshape(-1, n_frames, 1)
         y_train_temp = np.array(y_train_temp).reshape(-1, 1, 1)
         X_test = np.array(X_test).reshape(-1, n_frames, 1)
         y_test = np.array(y_test).reshape(-1, 1, 1)
 
-        model.fit(X_train_temp, y_train_temp, epochs=10, batch_size=64, validation_data=(X_test, y_test))
+        model.fit(X_train_temp, y_train_temp, epochs=100, batch_size=128, validation_data=(X_test, y_test))
 
         y_pred = model.predict(X_test).ravel()
         y_test = y_test.flatten()
