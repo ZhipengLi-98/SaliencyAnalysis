@@ -44,7 +44,7 @@ def cal_emd(aug_path, gaze_path, sal_path, data_path, condition, latency):
     temp_emd_ags = []
     temp_emd_ass = []
     for img_index in tqdm(range(cnt)):
-        # img_index = 3233
+        # img_index = 3039
         try:
             aug_img = cv2.imread(os.path.join(aug_path, "frame{}.jpg".format(img_index)))
             gaze_img = cv2.imread(os.path.join(gaze_path, "frame{}.jpg".format(img_index)), cv2.IMREAD_GRAYSCALE).astype(dtype=np.float32)
@@ -79,7 +79,7 @@ def cal_emd(aug_path, gaze_path, sal_path, data_path, condition, latency):
             if len(innerpoints) > 0:
                 innerpoints = np.array(innerpoints)
                 temp = [np.mean(innerpoints[:, 2]), np.mean(innerpoints[:, 3]), np.mean(innerpoints[:, 4])]
-                if ((np.mean(temp) < 45 and np.std(temp) < 3) or (np.mean(temp) < 70 and np.std(temp) < 4)) and np.std(temp) > 0.1:
+                if ((np.mean(temp) < 45 and np.std(temp) < 3) or (np.mean(temp) < 90 and np.std(temp) < 4)):
                     print(img_index, np.mean(temp), np.std(temp))
                     label = 1
                     idx.extend(temp_idx)
@@ -138,7 +138,7 @@ if __name__ == "__main__":
         user = "michael"
         print(user)
         for condition in os.listdir(os.path.join(imgs_path, user)):
-            if "virtual" not in condition:
+            if "virtual" not in condition or "color" in condition:
                 continue
             print(condition)
             aug_path = os.path.join(imgs_path, user, condition, condition + "_ani.mp4")

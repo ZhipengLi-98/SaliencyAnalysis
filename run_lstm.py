@@ -16,7 +16,11 @@ from keras.models import load_model
 parser = argparse.ArgumentParser()
 parser.add_argument("-u", "--username", action="store")
 parser.add_argument("-c", "--command", action="store")
+parser.add_argument("-d", "--device", action="store")
 args = parser.parse_args()
+
+if args.device == "cpu":
+    os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
 
 data_path = "./data"
 
@@ -170,7 +174,7 @@ if args.command == "train":
         # print(y_test.shape)
 
         model = Sequential()
-        model.add(Conv1D(filters=64, kernel_size=5, padding='same', activation='sigmoid'))
+        model.add(Conv1D(filters=64, kernel_size=5, padding='same', activation='relu'))
         model.add(MaxPooling1D(pool_size=4))
         model.add(LSTM(128, return_sequences=True, input_shape=(X_train.shape[1], 1)))
         model.add(Dropout(0.2))
@@ -187,13 +191,13 @@ if args.command == "train":
 
         print(test_user, roc_auc)
 
-        model.save("./saved_model/{}_sigmoid.h5".format(test_user))
+        model.save("./saved_model/{}_relu.h5".format(test_user))
         del model
 
 if args.command == "test":
     fig = plt.figure(figsize=(12, 6))
     for test_user in os.listdir(data_path):
-        model = load_model("./saved_model/{}_sigmoid.h5".format(test_user))
+        model = load_model("./saved_model/{}_relu.h5".format(test_user))
         X_train_temp, y_train_temp, X_test, y_test = test_trials(test_user, trials)
         X_train_temp = np.array(X_train_temp).reshape(-1, n_frames, 1)
         y_train_temp = np.array(y_train_temp).reshape(-1, 1, 1)
