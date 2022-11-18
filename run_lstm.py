@@ -5,6 +5,7 @@ import sklearn.metrics as metrics
 from matplotlib import pyplot as plt
 from random import random
 import argparse
+from sklearn.model_selection import train_test_split
 
 from keras.models import Sequential
 from keras.layers import LSTM
@@ -17,6 +18,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument("-u", "--username", action="store")
 parser.add_argument("-c", "--command", action="store")
 parser.add_argument("-d", "--device", action="store")
+parser.add_argument("-a", "--activation", action="store")
 args = parser.parse_args()
 
 if args.device == "cpu":
@@ -91,6 +93,7 @@ def test_trials(test_user, trial_number):
     temp_y_train = []
     flag = False if trial_number == 0 else True
     trial_cnt = 0
+    last_y = 0
     for condition in os.listdir(os.path.join(data_path, test_user)):
         # print(user, condition)
         df = pd.read_csv(os.path.join(data_path, test_user, condition))
@@ -112,22 +115,26 @@ def test_trials(test_user, trial_number):
                 else:
                     temp_x.append(X[i - n_frames: i])
                     temp_y.append(y[i])
-                if y[i] == 1:
+                if y[i] == 1 and last_y == 0:
                     trial_cnt += 1
                 if trial_cnt == trial_number:
                     flag = False
+                last_y = y[i]
     
     if len(temp_x_train) * len(temp_y_train) > 0:
         df = pd.DataFrame({"img": temp_x_train, "label": temp_y_train})
         class_0 = df[df['label'] == 0]
         class_1 = df[df['label'] == 1]
 
-        class_0_resample = class_0.sample(data_per_condition, replace=True)
+        class_0_resample = class_0.sample(int(data_per_condition), replace=True)
         class_1_resample = class_1.sample(data_per_condition, replace=True)
         temp = []
         temp.append(class_0_resample)
         temp.append(class_1_resample)
         test = pd.concat(temp, axis=0)
+
+        print(len(temp_x_train))
+        print(len(temp_x))
 
         return test['img'].tolist(), test['label'].tolist(), temp_x, temp_y
         return temp_x_train, temp_y_train, temp_x, temp_y
@@ -136,6 +143,8 @@ def test_trials(test_user, trial_number):
 
 if args.command == "train":
     for test_user in os.listdir(data_path):
+        # if os.path.isfile("./saved_model/{}_{}.h5".format(test_user, args.activation)):
+        #     continue
         print(test_user)
         X_train = []
         y_train = []
@@ -168,13 +177,15 @@ if args.command == "train":
         X_test = np.array(X_test).reshape(-1, n_frames, 1)
         y_test = np.array(y_test).reshape(-1, 1, 1)
 
+        X_train, X_val, y_train, y_val = train_test_split(X_train, y_train, test_size=0.2)
+
         # print(X_train.shape)
         # print(y_train.shape)
         # print(X_test.shape)
         # print(y_test.shape)
 
         model = Sequential()
-        model.add(Conv1D(filters=64, kernel_size=5, padding='same', activation='relu'))
+        model.add(Conv1D(filters=64, kernel_size=5, padding='same', activation=args.activation))
         model.add(MaxPooling1D(pool_size=4))
         model.add(LSTM(128, return_sequences=True, input_shape=(X_train.shape[1], 1)))
         model.add(Dropout(0.2))
@@ -182,7 +193,7 @@ if args.command == "train":
         model.add(Dropout(0.2))
         model.add(Dense(1))
         model.compile(optimizer='adam', loss='mean_squared_error', metrics=['accuracy'])
-        model.fit(X_train, y_train, epochs=100, batch_size=128, validation_data=(X_test, y_test))
+        model.fit(X_train, y_train, epochs=100, batch_size=128, validation_data=(X_val, y_val))
         
         y_pred = model.predict(X_test).ravel()
         y_test = y_test.flatten()
@@ -191,20 +202,27 @@ if args.command == "train":
 
         print(test_user, roc_auc)
 
-        model.save("./saved_model/{}_relu.h5".format(test_user))
+        model.save("./saved_model/{}_{}.h5".format(test_user, args.activation))
         del model
 
 if args.command == "test":
     fig = plt.figure(figsize=(12, 6))
     for test_user in os.listdir(data_path):
-        model = load_model("./saved_model/{}_relu.h5".format(test_user))
+        model = load_model("./saved_model/{}_{}.h5".format(test_user, args.activation))
         X_train_temp, y_train_temp, X_test, y_test = test_trials(test_user, trials)
         X_train_temp = np.array(X_train_temp).reshape(-1, n_frames, 1)
         y_train_temp = np.array(y_train_temp).reshape(-1, 1, 1)
         X_test = np.array(X_test).reshape(-1, n_frames, 1)
         y_test = np.array(y_test).reshape(-1, 1, 1)
 
-        model.fit(X_train_temp, y_train_temp, epochs=100, batch_size=128, validation_data=(X_test, y_test))
+        print(X_train_temp.shape)
+        print(y_train_temp.shape)
+        print(X_test.shape)
+        print(y_test.shape)
+
+        X_train_temp, X_val, y_train_temp, y_val = train_test_split(X_train_temp, y_train_temp, test_size=0.2)
+
+        model.fit(X_train_temp, y_train_temp, epochs=20, batch_size=32, validation_data=(X_val, y_val))
 
         y_pred = model.predict(X_test).ravel()
         y_test = y_test.flatten()
@@ -212,6 +230,10 @@ if args.command == "test":
         roc_auc = metrics.auc(fpr, tpr)
 
         print(test_user, roc_auc)
+
+        print("Evaluate on test data")
+        results = model.evaluate(X_test, y_test, batch_size=32)
+        print("test loss, test acc:", results)
         
         plt.plot(fpr, tpr, label = '{} AUC = %0.2f'.format(test_user) % roc_auc)
         plt.legend(loc = 'lower right', fontsize="small", bbox_to_anchor=(1.2, 0))
