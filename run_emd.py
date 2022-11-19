@@ -43,6 +43,7 @@ def cal_emd(aug_path, gaze_path, sal_path, data_path, condition, latency):
     temp_idx = []
     temp_emd_ags = []
     temp_emd_ass = []
+    one_cnt = 0
     for img_index in tqdm(range(cnt)):
         # img_index = 3039
         try:
@@ -79,13 +80,14 @@ def cal_emd(aug_path, gaze_path, sal_path, data_path, condition, latency):
             if len(innerpoints) > 0:
                 innerpoints = np.array(innerpoints)
                 temp = [np.mean(innerpoints[:, 2]), np.mean(innerpoints[:, 3]), np.mean(innerpoints[:, 4])]
-                if ((np.mean(temp) < 45 and np.std(temp) < 3) or (np.mean(temp) < 90 and np.std(temp) < 4)):
+                if ((np.mean(temp) < 45 and np.std(temp) < 3) or (np.mean(temp) < 70 and np.std(temp) < 3)):
                     print(img_index, np.mean(temp), np.std(temp))
                     label = 1
                     idx.extend(temp_idx)
                     emd_ass.extend(temp_emd_ass)
                     emd_ags.extend(temp_emd_ags)
                     if len(temp_idx) > delay:
+                        one_cnt += 1
                         labels.extend([0 for temp_i in range(len(temp_idx) - delay)])
                         labels.extend([1 for temp_i in range(delay)])
                     else:
@@ -124,6 +126,9 @@ def cal_emd(aug_path, gaze_path, sal_path, data_path, condition, latency):
         except:
             continue
 
+    if one_cnt < 5 or one_cnt > 15:
+        print(aug_path)
+
     if not os.path.exists(data_path):
         os.makedirs(data_path)
     df = pd.DataFrame({"index": idx, "emd_ani_sal": emd_ass, "emd_ani_gaze": emd_ags, "label": labels})
@@ -135,7 +140,6 @@ if __name__ == "__main__":
     saliency_path = "./formal/saliency"
     latency = 360
     for user in os.listdir(imgs_path):
-        user = "michael"
         print(user)
         for condition in os.listdir(os.path.join(imgs_path, user)):
             if "virtual" not in condition or "color" in condition:

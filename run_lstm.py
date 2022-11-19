@@ -133,10 +133,11 @@ def test_trials(test_user, trial_number):
             class_0 = df[df['label'] == 0]
             class_1 = df[df['label'] == 1]
 
-            class_0_resample = class_0.sample(int(data_per_condition / 1), replace=True)
-            class_1_resample = class_1.sample(int(data_per_condition / 1), replace=True)
-            train_set.append(class_0_resample)
-            train_set.append(class_1_resample)
+            if len(class_0['img'].to_list()) * len(class_1['img'].to_list()) > 0:
+                class_0_resample = class_0.sample(int(data_per_condition / 1), replace=True)
+                class_1_resample = class_1.sample(int(data_per_condition / 1), replace=True)
+                train_set.append(class_0_resample)
+                train_set.append(class_1_resample)
     
     if len(train_set) > 0:
         test = pd.concat(train_set, axis=0)
@@ -149,8 +150,8 @@ def test_trials(test_user, trial_number):
 if args.command == "train":
     fig = plt.figure(figsize=(12, 6))
     for test_user in os.listdir(data_path):
-        # if os.path.isfile("./saved_model/{}_{}.h5".format(test_user, args.activation)):
-        #     continue
+        if os.path.isfile("./saved_model/{}_{}_{}.h5".format(test_user, args.activation, args.initial)):
+            continue
         print(test_user)
         X_train = []
         y_train = []
@@ -255,20 +256,21 @@ if args.command == "test":
         results = model.evaluate(X_test, y_test, batch_size=128)
         print("test loss, test acc:", results)
         
-        X_train_temp, X_val, y_train_temp, y_val = train_test_split(X_train_temp, y_train_temp, test_size=0.2)
+        if args.initial == "none":
+            X_train_temp, X_val, y_train_temp, y_val = train_test_split(X_train_temp, y_train_temp, test_size=0.2)
 
-        model.fit(X_train_temp, y_train_temp, epochs=5, batch_size=128, validation_data=(X_val, y_val))
+            model.fit(X_train_temp, y_train_temp, epochs=5, batch_size=128, validation_data=(X_val, y_val))
 
-        y_pred = model.predict(X_test).ravel()
-        y_test = y_test.flatten()
-        fpr, tpr, threshold = metrics.roc_curve(y_test, y_pred)
-        roc_auc = metrics.auc(fpr, tpr)
+            y_pred = model.predict(X_test).ravel()
+            y_test = y_test.flatten()
+            fpr, tpr, threshold = metrics.roc_curve(y_test, y_pred)
+            roc_auc = metrics.auc(fpr, tpr)
 
-        print(test_user, roc_auc)
+            print(test_user, roc_auc)
 
-        print("Evaluate on test data")
-        results = model.evaluate(X_test, y_test, batch_size=128)
-        print("test loss, test acc:", results)
+            print("Evaluate on test data")
+            results = model.evaluate(X_test, y_test, batch_size=128)
+            print("test loss, test acc:", results)
         
         plt.plot(fpr, tpr, label = '{} AUC = %0.2f'.format(test_user) % roc_auc)
         plt.legend(loc = 'lower right', fontsize="small", bbox_to_anchor=(1.2, 0))
