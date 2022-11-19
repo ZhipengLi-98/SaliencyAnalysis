@@ -193,7 +193,7 @@ if args.command == "train":
         model.add(Dropout(0.2))
         model.add(Dense(1))
         model.compile(optimizer='adam', loss='mean_squared_error', metrics=['accuracy'])
-        model.fit(X_train, y_train, epochs=100, batch_size=128, validation_data=(X_val, y_val))
+        model.fit(X_train, y_train, epochs=200, batch_size=128, validation_data=(X_val, y_val))
         
         y_pred = model.predict(X_test).ravel()
         y_test = y_test.flatten()
@@ -201,6 +201,10 @@ if args.command == "train":
         roc_auc = metrics.auc(fpr, tpr)
 
         print(test_user, roc_auc)
+
+        print("Evaluate on test data")
+        results = model.evaluate(X_test, y_test, batch_size=32)
+        print("test loss, test acc:", results)
 
         model.save("./saved_model/{}_{}.h5".format(test_user, args.activation))
         del model
