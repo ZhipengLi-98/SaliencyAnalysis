@@ -19,6 +19,7 @@ parser.add_argument("-u", "--username", action="store")
 parser.add_argument("-c", "--command", action="store")
 parser.add_argument("-d", "--device", action="store")
 parser.add_argument("-a", "--activation", action="store")
+parser.add_argument("-i", "--initial", action="store")
 args = parser.parse_args()
 
 if args.device == "cpu":
@@ -127,14 +128,15 @@ def test_trials(test_user, trial_number):
                     flag = False
                 last_y = y[i]
         
-        df = pd.DataFrame({"img": temp_x_train, "label": temp_y_train})
-        class_0 = df[df['label'] == 0]
-        class_1 = df[df['label'] == 1]
+        if len(temp_x_train) > 0:
+            df = pd.DataFrame({"img": temp_x_train, "label": temp_y_train})
+            class_0 = df[df['label'] == 0]
+            class_1 = df[df['label'] == 1]
 
-        class_0_resample = class_0.sample(data_per_condition, replace=True)
-        class_1_resample = class_1.sample(data_per_condition, replace=True)
-        train_set.append(class_0_resample)
-        train_set.append(class_1_resample)
+            class_0_resample = class_0.sample(int(data_per_condition / 1), replace=True)
+            class_1_resample = class_1.sample(int(data_per_condition / 1), replace=True)
+            train_set.append(class_0_resample)
+            train_set.append(class_1_resample)
     
     if len(train_set) > 0:
         test = pd.concat(train_set, axis=0)
@@ -165,7 +167,10 @@ if args.command == "train":
         # X_test.extend(Xs[test_user][train_test_length:])
         # y_test.extend(ys[test_user][train_test_length:])
 
-        X_train_temp, y_train_temp, X_test, y_test = test_trials(test_user, trials)
+        if args.initial == "none":
+            X_train_temp, y_train_temp, X_test, y_test = test_trials(test_user, 0)
+        elif args.initial == "add":
+            X_train_temp, y_train_temp, X_test, y_test = test_trials(test_user, trials)
         X_train.extend(X_train_temp)
         y_train.extend(y_train_temp)
         # for i in range(len(Xs[test_user])):
@@ -210,7 +215,7 @@ if args.command == "train":
         results = model.evaluate(X_test, y_test, batch_size=128)
         print("test loss, test acc:", results)
 
-        model.save("./saved_model/{}_{}.h5".format(test_user, args.activation))
+        model.save("./saved_model/{}_{}_{}.h5".format(test_user, args.activation, args.initial))
         del model
         
         plt.plot(fpr, tpr, label = '{} AUC = %0.2f'.format(test_user) % roc_auc)
@@ -222,12 +227,12 @@ if args.command == "train":
         plt.xlabel('False Positive Rate')
         # plt.show()
         fig.tight_layout()
-        plt.savefig("./lstm_results/leave_{}_trials_out_balanced_{}.jpg".format(trials, test_user))
+        plt.savefig("./lstm_results/leave_{}_trials_out_balanced_{}_{}_{}.jpg".format(trials, args.activation, args.initial, test_user))
 
 if args.command == "test":
     fig = plt.figure(figsize=(12, 6))
     for test_user in os.listdir(data_path):
-        model = load_model("./saved_model/{}_{}.h5".format(test_user, args.activation))
+        model = load_model("./saved_model/{}_{}_{}.h5".format(test_user, args.activation, args.initial))
         X_train_temp, y_train_temp, X_test, y_test = test_trials(test_user, trials)
         X_train_temp = np.array(X_train_temp).reshape(-1, n_frames, 1)
         y_train_temp = np.array(y_train_temp).reshape(-1, 1, 1)
@@ -252,7 +257,7 @@ if args.command == "test":
         
         X_train_temp, X_val, y_train_temp, y_val = train_test_split(X_train_temp, y_train_temp, test_size=0.2)
 
-        model.fit(X_train_temp, y_train_temp, epochs=20, batch_size=128, validation_data=(X_val, y_val))
+        model.fit(X_train_temp, y_train_temp, epochs=5, batch_size=128, validation_data=(X_val, y_val))
 
         y_pred = model.predict(X_test).ravel()
         y_test = y_test.flatten()
@@ -274,7 +279,7 @@ if args.command == "test":
         plt.xlabel('False Positive Rate')
         # plt.show()
     fig.tight_layout()
-    plt.savefig("./lstm_results/leave_{}_trials_out_balanced.jpg".format(trials))
+    plt.savefig("./lstm_results/leave_{}_trials_out_balanced_{}_{}_{}_test.jpg".format(trials, args.activation, args.initial, test_user))
         # plt.show()
 
 

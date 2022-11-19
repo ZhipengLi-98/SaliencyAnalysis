@@ -1,0 +1,1 @@
+11/18, Lab computer: python run_lstm.py -c train -a relu -d gpu -i none
