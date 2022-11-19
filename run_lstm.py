@@ -28,7 +28,7 @@ data_path = "./data"
 
 n_frames = 10
 data_per_condition = 2400
-trials = 5
+trials = 1
 
 Xs = {}
 ys = {}
@@ -94,7 +94,13 @@ def test_trials(test_user, trial_number):
     flag = False if trial_number == 0 else True
     trial_cnt = 0
     last_y = 0
+    train_set = []
     for condition in os.listdir(os.path.join(data_path, test_user)):
+        temp_x_train = []
+        temp_y_train = []
+        trial_cnt = 0
+        last_y = 0
+        flag = False if trial_number == 0 else True
         # print(user, condition)
         df = pd.read_csv(os.path.join(data_path, test_user, condition))
         # df = pd.read_csv("./data/{}/data_{}_{}_{}.csv".format(user, condition.split("_")[1], condition.split("_")[2], user))
@@ -120,21 +126,18 @@ def test_trials(test_user, trial_number):
                 if trial_cnt == trial_number:
                     flag = False
                 last_y = y[i]
-    
-    if len(temp_x_train) * len(temp_y_train) > 0:
+        
         df = pd.DataFrame({"img": temp_x_train, "label": temp_y_train})
         class_0 = df[df['label'] == 0]
         class_1 = df[df['label'] == 1]
 
-        class_0_resample = class_0.sample(int(data_per_condition), replace=True)
+        class_0_resample = class_0.sample(data_per_condition, replace=True)
         class_1_resample = class_1.sample(data_per_condition, replace=True)
-        temp = []
-        temp.append(class_0_resample)
-        temp.append(class_1_resample)
-        test = pd.concat(temp, axis=0)
-
-        print(len(temp_x_train))
-        print(len(temp_x))
+        train_set.append(class_0_resample)
+        train_set.append(class_1_resample)
+    
+    if len(train_set) > 0:
+        test = pd.concat(train_set, axis=0)
 
         return test['img'].tolist(), test['label'].tolist(), temp_x, temp_y
         return temp_x_train, temp_y_train, temp_x, temp_y
@@ -142,6 +145,7 @@ def test_trials(test_user, trial_number):
         return temp_x_train, temp_y_train, temp_x, temp_y
 
 if args.command == "train":
+    fig = plt.figure(figsize=(12, 6))
     for test_user in os.listdir(data_path):
         # if os.path.isfile("./saved_model/{}_{}.h5".format(test_user, args.activation)):
         #     continue
@@ -161,9 +165,9 @@ if args.command == "train":
         # X_test.extend(Xs[test_user][train_test_length:])
         # y_test.extend(ys[test_user][train_test_length:])
 
-        X_train_temp, y_train_temp, X_test, y_test = test_trials(test_user, 0)
-        # X_train.extend(X_train_temp)
-        # y_train.extend(y_train_temp)
+        X_train_temp, y_train_temp, X_test, y_test = test_trials(test_user, trials)
+        X_train.extend(X_train_temp)
+        y_train.extend(y_train_temp)
         # for i in range(len(Xs[test_user])):
         #     if random() > 0.9:
         #         X_train.append(Xs[test_user][i])
@@ -193,7 +197,7 @@ if args.command == "train":
         model.add(Dropout(0.2))
         model.add(Dense(1))
         model.compile(optimizer='adam', loss='mean_squared_error', metrics=['accuracy'])
-        model.fit(X_train, y_train, epochs=200, batch_size=128, validation_data=(X_val, y_val))
+        model.fit(X_train, y_train, epochs=100, batch_size=128, validation_data=(X_val, y_val))
         
         y_pred = model.predict(X_test).ravel()
         y_test = y_test.flatten()
@@ -203,11 +207,22 @@ if args.command == "train":
         print(test_user, roc_auc)
 
         print("Evaluate on test data")
-        results = model.evaluate(X_test, y_test, batch_size=32)
+        results = model.evaluate(X_test, y_test, batch_size=128)
         print("test loss, test acc:", results)
 
         model.save("./saved_model/{}_{}.h5".format(test_user, args.activation))
         del model
+        
+        plt.plot(fpr, tpr, label = '{} AUC = %0.2f'.format(test_user) % roc_auc)
+        plt.legend(loc = 'lower right', fontsize="small", bbox_to_anchor=(1.2, 0))
+        plt.plot([0, 1], [0, 1],'r--')
+        plt.xlim([0, 1])
+        plt.ylim([0, 1])
+        plt.ylabel('True Positive Rate')
+        plt.xlabel('False Positive Rate')
+        # plt.show()
+        fig.tight_layout()
+        plt.savefig("./lstm_results/leave_{}_trials_out_balanced_{}.jpg".format(trials, test_user))
 
 if args.command == "test":
     fig = plt.figure(figsize=(12, 6))
@@ -224,9 +239,20 @@ if args.command == "test":
         print(X_test.shape)
         print(y_test.shape)
 
+        y_pred = model.predict(X_test).ravel()
+        y_test = y_test.flatten()
+        fpr, tpr, threshold = metrics.roc_curve(y_test, y_pred)
+        roc_auc = metrics.auc(fpr, tpr)
+
+        print(test_user, roc_auc)
+
+        print("Evaluate on test data")
+        results = model.evaluate(X_test, y_test, batch_size=128)
+        print("test loss, test acc:", results)
+        
         X_train_temp, X_val, y_train_temp, y_val = train_test_split(X_train_temp, y_train_temp, test_size=0.2)
 
-        model.fit(X_train_temp, y_train_temp, epochs=20, batch_size=32, validation_data=(X_val, y_val))
+        model.fit(X_train_temp, y_train_temp, epochs=20, batch_size=128, validation_data=(X_val, y_val))
 
         y_pred = model.predict(X_test).ravel()
         y_test = y_test.flatten()
@@ -236,7 +262,7 @@ if args.command == "test":
         print(test_user, roc_auc)
 
         print("Evaluate on test data")
-        results = model.evaluate(X_test, y_test, batch_size=32)
+        results = model.evaluate(X_test, y_test, batch_size=128)
         print("test loss, test acc:", results)
         
         plt.plot(fpr, tpr, label = '{} AUC = %0.2f'.format(test_user) % roc_auc)
