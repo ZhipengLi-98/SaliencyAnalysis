@@ -150,8 +150,8 @@ def test_trials(test_user, trial_number):
 if args.command == "train":
     fig = plt.figure(figsize=(12, 6))
     for test_user in os.listdir(data_path):
-        if os.path.isfile("./saved_model/{}_{}_{}.h5".format(test_user, args.activation, args.initial)):
-            continue
+        # if os.path.isfile("./saved_model/{}_{}_{}.h5".format(test_user, args.activation, args.initial)):
+        #     continue
         print(test_user)
         X_train = []
         y_train = []
@@ -191,8 +191,8 @@ if args.command == "train":
 
         # print(X_train.shape)
         # print(y_train.shape)
-        # print(X_test.shape)
-        # print(y_test.shape)
+        print(X_test.shape)
+        print(y_test.shape)
 
         model = Sequential()
         model.add(Conv1D(filters=64, kernel_size=5, padding='same', activation=args.activation))

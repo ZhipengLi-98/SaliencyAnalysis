@@ -6,6 +6,7 @@ import numpy as np
 data_path = "./data"
 
 for user in os.listdir(data_path):
+    user = "gww"
     print(user)
     files = []
     for condition in os.listdir(os.path.join(data_path, user)):
@@ -27,3 +28,4 @@ for user in os.listdir(data_path):
     # plt.scatter(emd_ass, labels)
     # plt.scatter(emd_ags, labels)
     plt.show()
+    break
