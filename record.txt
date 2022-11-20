@@ -1,2 +1,4 @@
 11/18, Lab computer: python run_lstm.py -c train -a relu -d gpu -i none
 11/18, My computer: python run_lstm.py -c train -d gpu -a relu -i add
+11/19, Lab computer: python run_lstm.py -c train -a sigmoid -d gpu -i none
+11/19, My computer: python run_lstm.py -c train -d gpu -a sigmoid -i add

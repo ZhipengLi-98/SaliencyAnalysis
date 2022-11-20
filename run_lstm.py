@@ -228,7 +228,7 @@ if args.command == "train":
         plt.xlabel('False Positive Rate')
         # plt.show()
         fig.tight_layout()
-        plt.savefig("./lstm_results/leave_{}_trials_out_balanced_{}_{}_{}.jpg".format(trials, args.activation, args.initial, test_user))
+        plt.savefig("./lstm_results/leave_{}_trials_out_balanced_{}_{}.jpg".format(trials, args.activation, args.initial))
 
 if args.command == "test":
     fig = plt.figure(figsize=(12, 6))
