@@ -28,7 +28,7 @@ if args.device == "cpu":
 data_path = "./data"
 
 n_frames = 10
-data_per_condition = 2400
+data_per_condition = 1200
 trials = 1
 
 Xs = {}
@@ -45,7 +45,7 @@ for user in os.listdir(data_path):
         df = pd.read_csv(os.path.join(data_path, user, condition))
         # df = pd.read_csv("./data/{}/data_{}_{}_{}.csv".format(user, condition.split("_")[1], condition.split("_")[2], user))
         idx = df["index"].tolist()
-        X = df["emd_ani_sal"].tolist()
+        X = df["emd_ani_gaze"].tolist()
         # X = df["emd_ani_gaze"].tolist()
         y = df["label"].tolist()
 
@@ -106,7 +106,7 @@ def test_trials(test_user, trial_number):
         df = pd.read_csv(os.path.join(data_path, test_user, condition))
         # df = pd.read_csv("./data/{}/data_{}_{}_{}.csv".format(user, condition.split("_")[1], condition.split("_")[2], user))
         idx = df["index"].tolist()
-        X = df["emd_ani_sal"].tolist()
+        X = df["emd_ani_gaze"].tolist()
         # X = df["emd_ani_gaze"].tolist()
         y = df["label"].tolist()
 
@@ -203,7 +203,7 @@ if args.command == "train":
         model.add(Dropout(0.2))
         model.add(Dense(1))
         model.compile(optimizer='adam', loss='mean_squared_error', metrics=['accuracy'])
-        model.fit(X_train, y_train, epochs=100, batch_size=128, validation_data=(X_val, y_val))
+        model.fit(X_train, y_train, epochs=50, batch_size=128, validation_data=(X_val, y_val))
         
         y_pred = model.predict(X_test).ravel()
         y_test = y_test.flatten()
@@ -216,8 +216,8 @@ if args.command == "train":
         results = model.evaluate(X_test, y_test, batch_size=128)
         print("test loss, test acc:", results)
 
-        model.save("./saved_model/{}_{}_{}.h5".format(test_user, args.activation, args.initial))
-        del model
+        # model.save("./saved_model/{}_{}_{}.h5".format(test_user, args.activation, args.initial))
+        # del model
         
         plt.plot(fpr, tpr, label = '{} AUC = %0.2f'.format(test_user) % roc_auc)
         plt.legend(loc = 'lower right', fontsize="small", bbox_to_anchor=(1.2, 0))
@@ -228,7 +228,7 @@ if args.command == "train":
         plt.xlabel('False Positive Rate')
         # plt.show()
         fig.tight_layout()
-        plt.savefig("./lstm_results/leave_{}_trials_out_balanced_{}_{}.jpg".format(trials, args.activation, args.initial))
+        plt.savefig("./lstm_results/leave_{}_trials_out_balanced_{}_{}_gaze.jpg".format(trials, args.activation, args.initial))
 
 if args.command == "test":
     fig = plt.figure(figsize=(12, 6))
