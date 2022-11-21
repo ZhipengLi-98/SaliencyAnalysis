@@ -12,10 +12,19 @@ for user in os.listdir(data_path):
     for condition in os.listdir(os.path.join(data_path, user)):
         print(condition)
         files.append(pd.read_csv(os.path.join(data_path, user, condition)))
-    df = pd.concat(files)
-    emd_ass = df["emd_ani_sal"].to_list()
-    emd_ags = df["emd_ani_gaze"].to_list()
-    labels = df["label"].to_list()
+        df = pd.concat(files)
+        idx = df["index"].to_list()
+        emd_ass = df["emd_ani_sal"].to_list()
+        emd_ags = df["emd_ani_gaze"].to_list()
+        labels = df["label"].to_list()
+        fig, axes = plt.subplots(1, 1)
+        axes.plot(idx, emd_ass, label="saliency")
+        axes.plot(idx, emd_ags, label="gaze")
+        axes.scatter(idx, labels)
+        plt.legend()
+        plt.show()
+        break
+    break
     class_0 = df[df['label'] == 0]
     class_1 = df[df['label'] == 1]
     fig, axes = plt.subplots(1, 2)

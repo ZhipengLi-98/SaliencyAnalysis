@@ -26,7 +26,7 @@ def get_signature_from_heatmap(hm):
     if sum_hm < 0.0001:
         return None
 
-    # sig[:, 0] /= np.sum(sig[:, 0])
+    sig[:, 0] /= np.sum(sig[:, 0])
     # print sig
     return sig
 
@@ -138,7 +138,7 @@ def cal_emd(aug_path, gaze_path, sal_path, data_path, condition, latency):
 if __name__ == "__main__":
     imgs_path = "./formal/imgs"
     saliency_path = "./formal/saliency"
-    latency = 360
+    latency = 100
     for user in os.listdir(imgs_path):
         user = "gww"
         print(user)
@@ -149,5 +149,5 @@ if __name__ == "__main__":
             sal_path = os.path.join(saliency_path, user, condition + "_all.mp4")
             data_path = os.path.join("./data", user)
             cal_emd(aug_path, gaze_path, sal_path, data_path, condition, latency)
-            # break
+            break
         break
