@@ -3,7 +3,7 @@ from matplotlib import pyplot as plt
 import os
 import numpy as np
 
-data_path = "./data"
+data_path = "./smooth"
 
 for user in os.listdir(data_path):
     user = "gww"
@@ -24,7 +24,7 @@ for user in os.listdir(data_path):
         axes.scatter(idx, labels)
         plt.legend()
         plt.show()
-        break
+        # break
     break
     class_0 = df[df['label'] == 0]
     class_1 = df[df['label'] == 1]
