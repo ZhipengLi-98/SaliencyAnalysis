@@ -11,6 +11,7 @@ for user in os.listdir(data_path):
     files = []
     for condition in os.listdir(os.path.join(data_path, user)):
         print(condition)
+        files = []
         files.append(pd.read_csv(os.path.join(data_path, user, condition)))
         df = pd.concat(files)
         idx = df["index"].to_list()
