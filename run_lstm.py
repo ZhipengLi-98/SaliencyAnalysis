@@ -177,6 +177,8 @@ if args.command == "train":
             X_train_temp, y_train_temp, X_test, y_test = test_trials(test_user, trials)
         X_train.extend(X_train_temp)
         y_train.extend(y_train_temp)
+        X_test = []
+        y_test = []
         for i in range(len(Xs[test_user])):
             if random() > 0.75:
                 X_train.append(Xs[test_user][i])
@@ -192,8 +194,8 @@ if args.command == "train":
 
         # X_train, X_val, y_train, y_val = train_test_split(X_train, y_train, test_size=0.2)
 
-        # print(X_train.shape)
-        # print(y_train.shape)
+        print(X_train.shape)
+        print(y_train.shape)
         print(X_test.shape)
         print(y_test.shape)
 
