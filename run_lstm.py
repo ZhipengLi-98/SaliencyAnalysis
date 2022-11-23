@@ -25,11 +25,11 @@ args = parser.parse_args()
 if args.device == "cpu":
     os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
 
-data_path = "./data"
+data_path = "./smooth"
 
 n_frames = 10
 data_per_condition = 2400
-trials = 1
+trials = 2
 
 Xs = {}
 ys = {}
@@ -205,7 +205,7 @@ if args.command == "train":
         model.add(Dropout(0.2))
         model.add(Dense(1))
         model.compile(optimizer='adam', loss='mean_squared_error', metrics=['accuracy'])
-        model.fit(X_train, y_train, epochs=50, batch_size=64, validation_data=(X_val, y_val))
+        model.fit(X_train, y_train, epochs=20, batch_size=64, validation_data=(X_val, y_val))
         
         y_pred = model.predict(X_test).ravel()
         y_test = y_test.flatten()
