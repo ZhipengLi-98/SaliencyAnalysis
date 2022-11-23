@@ -23,7 +23,7 @@ for user in os.listdir(data_path):
         for i in range(len(idx)):
             if labels[i] == 1 and labels[i - 1] == 1:
                 continue
-            elif labels[i] == 0 and labels[i - 1] == 0:
+            elif labels[i] == 0 and labels[i - 1] == 1:
                 continue
             else:
                 temp_idx.append(idx[i])

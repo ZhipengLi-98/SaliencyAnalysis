@@ -12,9 +12,10 @@ from keras.layers import Dropout
 from keras.layers import Dense
 from keras.layers import Conv1D, MaxPooling1D
 
-data_path = "./data"
+data_path = "./smooth"
 
 n_frames = 10
+data_per_condition = 1200
 
 Xs = {}
 ys = {}
@@ -22,31 +23,39 @@ ys = {}
 user_list = ["gww", "hyw", "jjx", "lc", "lzj", "plh", "wrl", "wzy", "yyw", "zd", "zyh"]
 
 for user in os.listdir(data_path):
-    if user not in user_list:
-        continue
     t_x = []
     t_y = []
+    temp = []
     for condition in os.listdir(os.path.join(data_path, user)):
         # print(user, condition)
-        df = pd.read_csv(os.path.join(data_path, user, condition))
-        # df = pd.read_csv("./data/{}/data_{}_{}_{}.csv".format(user, condition.split("_")[1], condition.split("_")[2], user))
-        idx = df["index"].tolist()
-        X = df["emd_ani_sal"].tolist()
-        # X = df["emd_ani_gaze"].tolist()
-        y = df["label"].tolist()
+        try:
+            t_x = []
+            t_y = []
+            df = pd.read_csv(os.path.join(data_path, user, condition))
+            # df = pd.read_csv("./data/{}/data_{}_{}_{}.csv".format(user, condition.split("_")[1], condition.split("_")[2], user))
+            idx = df["index"].tolist()
+            X = df["emd_ani_sal"].tolist()
+            # X = df["emd_ani_gaze"].tolist()
+            y = df["label"].tolist()
 
-        for i in range(n_frames, len(idx)):
-            if idx[i] - idx[i - n_frames] == n_frames:
-                t_x.append(X[i - n_frames: i])
-                t_y.append(y[i])
+            for i in range(n_frames, len(idx)):
+                if idx[i] - idx[i - n_frames] == n_frames:
+                    t_x.append(X[i - n_frames: i])
+                    t_y.append(y[i])
 
-    df = pd.DataFrame({"img": t_x, "label": t_y})
-    class_0 = df[df['label'] == 0]
-    class_1 = df[df['label'] == 1]
-    class_count_0, class_count_1 = df['label'].value_counts()
-    class_1_over = class_1.sample(class_count_0, replace=True)
+            df = pd.DataFrame({"img": t_x, "label": t_y})
+            class_0 = df[df['label'] == 0]
+            class_1 = df[df['label'] == 1]
+            class_count_0, class_count_1 = df['label'].value_counts()
+            class_0_over = class_0.sample(data_per_condition, replace=True)
+            class_1_over = class_1.sample(data_per_condition, replace=True)
+            temp.append(class_0_over)
+            temp.append(class_1_over)
+        except:
+            print(user, condition)
 
-    test = pd.concat([class_1_over, class_0], axis=0)
+    test = pd.concat(temp, axis=0)
+    # test = pd.concat([class_1_over, class_0_over], axis=0)
 
     X = test['img'].tolist()
     y = test['label'].tolist()
@@ -58,16 +67,12 @@ for user in os.listdir(data_path):
     ys[user] = y
 
 for test_user in os.listdir(data_path):
-    if test_user not in user_list:
-        continue
     print(test_user)
     X_train = []
     y_train = []
     X_test = []
     y_test = []
     for user in os.listdir(data_path):
-        if user not in user_list:
-            continue
         if user != test_user:
             X_train.extend(Xs[user])
             y_train.extend(ys[user])
@@ -79,7 +84,7 @@ for test_user in os.listdir(data_path):
     # y_test.extend(ys[test_user][train_test_length:])
 
     for i in range(len(Xs[test_user])):
-        if random() > 0.85:
+        if random() > 1.85:
             X_train.append(Xs[test_user][i])
             y_train.append(ys[test_user][i])
         else:
@@ -93,6 +98,8 @@ for test_user in os.listdir(data_path):
 
     print(X_train.shape)
     print(y_train.shape)
+    print(X_test.shape)
+    print(y_test.shape)
 
     X_train, X_val, y_train, y_val = train_test_split(X_train, y_train, test_size=0.2)
 
@@ -119,7 +126,7 @@ for test_user in os.listdir(data_path):
     plt.ylim([0, 1])
     plt.ylabel('True Positive Rate')
     plt.xlabel('False Positive Rate')
-    plt.savefig("./lstm_results_val.jpg")
+    plt.savefig("./lstm_results_val_more_user.jpg")
     # plt.show()
     # break
     # import visualkeras
