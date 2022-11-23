@@ -12,10 +12,10 @@ from keras.layers import Dropout
 from keras.layers import Dense
 from keras.layers import Conv1D, MaxPooling1D
 
-data_path = "./smooth"
+data_path = "./data"
 
 n_frames = 10
-data_per_condition = 1200
+data_per_condition = 2400
 
 Xs = {}
 ys = {}
@@ -23,6 +23,8 @@ ys = {}
 user_list = ["gww", "hyw", "jjx", "lc", "lzj", "plh", "wrl", "wzy", "yyw", "zd", "zyh"]
 
 for user in os.listdir(data_path):
+    # if user not in user_list:
+    #     continue
     t_x = []
     t_y = []
     temp = []
@@ -66,13 +68,18 @@ for user in os.listdir(data_path):
     Xs[user] = X
     ys[user] = y
 
+fig = plt.figure(figsize=(12, 6))
 for test_user in os.listdir(data_path):
+    # if test_user not in user_list:
+    #     continue
     print(test_user)
     X_train = []
     y_train = []
     X_test = []
     y_test = []
     for user in os.listdir(data_path):
+        # if user not in user_list:
+        #     continue
         if user != test_user:
             X_train.extend(Xs[user])
             y_train.extend(ys[user])
@@ -84,7 +91,7 @@ for test_user in os.listdir(data_path):
     # y_test.extend(ys[test_user][train_test_length:])
 
     for i in range(len(Xs[test_user])):
-        if random() > 1.85:
+        if random() > 0.75:
             X_train.append(Xs[test_user][i])
             y_train.append(ys[test_user][i])
         else:
@@ -119,13 +126,14 @@ for test_user in os.listdir(data_path):
     fpr, tpr, threshold = metrics.roc_curve(y_test, y_pred)
     roc_auc = metrics.auc(fpr, tpr)
     
-    plt.plot(fpr, tpr, label = 'AUC = %0.2f' % roc_auc)
-    plt.legend(loc = 'lower right')
+    plt.plot(fpr, tpr, label = '{} AUC = %0.2f'.format(test_user) % roc_auc)
+    plt.legend(loc = 'lower right', fontsize="small", bbox_to_anchor=(1.2, 0))
     plt.plot([0, 1], [0, 1],'r--')
     plt.xlim([0, 1])
     plt.ylim([0, 1])
     plt.ylabel('True Positive Rate')
     plt.xlabel('False Positive Rate')
+    fig.tight_layout()
     plt.savefig("./lstm_results_val_more_user.jpg")
     # plt.show()
     # break
