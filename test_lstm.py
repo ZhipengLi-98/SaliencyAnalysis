@@ -4,6 +4,7 @@ import numpy as np
 import sklearn.metrics as metrics
 from matplotlib import pyplot as plt
 from random import random
+from sklearn.model_selection import train_test_split
 
 from keras.models import Sequential
 from keras.layers import LSTM
@@ -93,6 +94,8 @@ for test_user in os.listdir(data_path):
     print(X_train.shape)
     print(y_train.shape)
 
+    X_train, X_val, y_train, y_val = train_test_split(X_train, y_train, test_size=0.2)
+
     model = Sequential()
     model.add(Conv1D(filters=64, kernel_size=5, padding='same', activation='relu'))
     model.add(MaxPooling1D(pool_size=4))
@@ -102,7 +105,7 @@ for test_user in os.listdir(data_path):
     model.add(Dropout(0.2))
     model.add(Dense(1))
     model.compile(optimizer='adam', loss='mean_squared_error', metrics=['accuracy'])
-    model.fit(X_train, y_train, epochs=100, batch_size=64, validation_data=(X_test, y_test))
+    model.fit(X_train, y_train, epochs=50, batch_size=64, validation_data=(X_val, y_val))
     
     y_pred = model.predict(X_test).ravel()
     y_test = y_test.flatten()
@@ -116,7 +119,7 @@ for test_user in os.listdir(data_path):
     plt.ylim([0, 1])
     plt.ylabel('True Positive Rate')
     plt.xlabel('False Positive Rate')
-    plt.savefig("./lstm_results.jpg")
+    plt.savefig("./lstm_results_val.jpg")
     # plt.show()
     # break
     # import visualkeras
