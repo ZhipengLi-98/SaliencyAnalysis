@@ -12,7 +12,7 @@ from keras.layers import Dropout
 from keras.layers import Dense
 from keras.layers import Conv1D, MaxPooling1D
 
-data_path = "./data"
+data_path = "./smooth"
 
 n_frames = 10
 data_per_condition = 2400
@@ -119,7 +119,7 @@ for test_user in os.listdir(data_path):
     model.add(Dropout(0.2))
     model.add(Dense(1))
     model.compile(optimizer='adam', loss='mean_squared_error', metrics=['accuracy'])
-    model.fit(X_train, y_train, epochs=50, batch_size=64, validation_data=(X_val, y_val))
+    model.fit(X_train, y_train, epochs=20, batch_size=64, validation_data=(X_val, y_val))
     
     y_pred = model.predict(X_test).ravel()
     y_test = y_test.flatten()
@@ -134,7 +134,7 @@ for test_user in os.listdir(data_path):
     plt.ylabel('True Positive Rate')
     plt.xlabel('False Positive Rate')
     fig.tight_layout()
-    plt.savefig("./lstm_results_val_more_user.jpg")
+    plt.savefig("./lstm_results_leave_0.75_out.jpg")
     # plt.show()
     # break
     # import visualkeras

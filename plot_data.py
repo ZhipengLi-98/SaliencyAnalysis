@@ -6,7 +6,7 @@ import numpy as np
 data_path = "./smooth"
 
 for user in os.listdir(data_path):
-    user = "gww"
+    user = "dhc"
     print(user)
     files = []
     for condition in os.listdir(os.path.join(data_path, user)):

@@ -28,7 +28,7 @@ if args.device == "cpu":
 data_path = "./data"
 
 n_frames = 10
-data_per_condition = 1200
+data_per_condition = 2400
 trials = 1
 
 Xs = {}
@@ -60,7 +60,7 @@ for user in os.listdir(data_path):
         df = pd.DataFrame({"img": temp_x, "label": temp_y})
         class_0 = df[df['label'] == 0]
         class_1 = df[df['label'] == 1]
-
+        class_count_0, class_count_1 = df['label'].value_counts()
         class_0_resample = class_0.sample(data_per_condition, replace=True)
         class_1_resample = class_1.sample(data_per_condition, replace=True)
         temp.append(class_0_resample)
@@ -147,12 +147,9 @@ def test_trials(test_user, trial_number):
     else:
         return temp_x_train, temp_y_train, temp_x, temp_y
 
-user_list = ["gww", "hyw", "jjx", "lc", "lzj", "plh", "wrl", "wzy", "yyw", "zd", "zyh"]
 if args.command == "train":
     fig = plt.figure(figsize=(12, 6))
     for test_user in os.listdir(data_path):
-        if test_user not in user_list:
-            continue
         # if os.path.isfile("./saved_model/{}_{}_{}.h5".format(test_user, args.activation, args.initial)):
         #     continue
         print(test_user)
@@ -161,7 +158,7 @@ if args.command == "train":
         X_test = []
         y_test = []
         for user in os.listdir(data_path):
-            if user != test_user and user in Xs.keys() and user in user_list:
+            if user != test_user and user in Xs.keys():
                 X_train.extend(Xs[user])
                 y_train.extend(ys[user])
         
@@ -177,27 +174,27 @@ if args.command == "train":
             X_train_temp, y_train_temp, X_test, y_test = test_trials(test_user, trials)
         X_train.extend(X_train_temp)
         y_train.extend(y_train_temp)
-        X_test = []
-        y_test = []
-        for i in range(len(Xs[test_user])):
-            if random() > 0.75:
-                X_train.append(Xs[test_user][i])
-                y_train.append(ys[test_user][i])
-            else:
-                X_test.append(Xs[test_user][i])
-                y_test.append(ys[test_user][i])
+        # X_test = []
+        # y_test = []
+        # for i in range(len(Xs[test_user])):
+        #     if random() > 0.90:
+        #         X_train.append(Xs[test_user][i])
+        #         y_train.append(ys[test_user][i])
+        #     else:
+        #         X_test.append(Xs[test_user][i])
+        #         y_test.append(ys[test_user][i])
         
         X_train = np.array(X_train).reshape(-1, n_frames, 1)
         y_train = np.array(y_train).reshape(-1, 1, 1)
         X_test = np.array(X_test).reshape(-1, n_frames, 1)
         y_test = np.array(y_test).reshape(-1, 1, 1)
 
-        # X_train, X_val, y_train, y_val = train_test_split(X_train, y_train, test_size=0.2)
-
         print(X_train.shape)
         print(y_train.shape)
         print(X_test.shape)
         print(y_test.shape)
+
+        X_train, X_val, y_train, y_val = train_test_split(X_train, y_train, test_size=0.2)
 
         model = Sequential()
         model.add(Conv1D(filters=64, kernel_size=5, padding='same', activation=args.activation))
@@ -208,7 +205,7 @@ if args.command == "train":
         model.add(Dropout(0.2))
         model.add(Dense(1))
         model.compile(optimizer='adam', loss='mean_squared_error', metrics=['accuracy'])
-        model.fit(X_train, y_train, epochs=50, batch_size=32, validation_data=(X_test, y_test))
+        model.fit(X_train, y_train, epochs=50, batch_size=64, validation_data=(X_val, y_val))
         
         y_pred = model.predict(X_test).ravel()
         y_test = y_test.flatten()
@@ -233,7 +230,7 @@ if args.command == "train":
         plt.xlabel('False Positive Rate')
         # plt.show()
         fig.tight_layout()
-        plt.savefig("./lstm_results/leave_{}_trials_out_balanced_{}_{}_fourusers.jpg".format(trials, args.activation, args.initial))
+        plt.savefig("./lstm_results/leave_{}_trials_out_balanced_{}_{}_data.jpg".format(trials, args.activation, args.initial))
 
 if args.command == "test":
     fig = plt.figure(figsize=(12, 6))
