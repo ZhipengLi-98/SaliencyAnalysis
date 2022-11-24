@@ -4,7 +4,7 @@ import os
 import sklearn.metrics as metrics
 from matplotlib import pyplot as plt
 
-data_path = "./data"
+data_path = "./smooth"
 
 for test_user in os.listdir(data_path):
     print(test_user)
@@ -24,16 +24,26 @@ for test_user in os.listdir(data_path):
     class_0 = df[df['label'] == 0]
     class_1 = df[df['label'] == 1]
     class_count_0, class_count_1 = df['label'].value_counts()
+    class_0_over = class_0.sample(class_count_1, replace=True)
     class_1_over = class_1.sample(class_count_0, replace=True)
 
-    test = pd.concat([class_1_over, class_0], axis=0)
+    test = pd.concat([class_0_over, class_1], axis=0)
 
     X_train = test['emd_ani_sal']
     y_train = test['label']
+    y_train = y_train.astype('int')
     X_test = test_df['emd_ani_sal']
     y_test = test_df['label']
+    y_test = y_test.astype('int')
     X_train = X_train.values.reshape(-1, 1)
     X_test = X_test.values.reshape(-1, 1)
+    y_train = y_train.values.reshape(-1, 1)
+    y_test = y_test.values.reshape(-1, 1)
+
+    print(X_train.shape)
+    print(y_train.shape)
+    print(X_test.shape)
+    print(y_test.shape)
 
     clf = svm.SVC(probability=True)
     clf.fit(X_train, y_train)

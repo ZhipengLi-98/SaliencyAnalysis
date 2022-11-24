@@ -29,7 +29,7 @@ data_path = "./smooth"
 
 n_frames = 10
 data_per_condition = 2400
-trials = 2
+trials = 1
 
 Xs = {}
 ys = {}
@@ -172,8 +172,8 @@ if args.command == "train":
             X_train_temp, y_train_temp, X_test, y_test = test_trials(test_user, 0)
         elif args.initial == "add":
             X_train_temp, y_train_temp, X_test, y_test = test_trials(test_user, trials)
-        X_train.extend(X_train_temp)
-        y_train.extend(y_train_temp)
+        # X_train.extend(X_train_temp)
+        # y_train.extend(y_train_temp)
         # X_test = []
         # y_test = []
         # for i in range(len(Xs[test_user])):
@@ -186,6 +186,8 @@ if args.command == "train":
         
         X_train = np.array(X_train).reshape(-1, n_frames, 1)
         y_train = np.array(y_train).reshape(-1, 1, 1)
+        X_train_temp = np.array(X_train_temp).reshape(-1, n_frames, 1)
+        y_train_temp = np.array(y_train_temp).reshape(-1, 1, 1)
         X_test = np.array(X_test).reshape(-1, n_frames, 1)
         y_test = np.array(y_test).reshape(-1, 1, 1)
 
@@ -194,18 +196,18 @@ if args.command == "train":
         print(X_test.shape)
         print(y_test.shape)
 
-        X_train, X_val, y_train, y_val = train_test_split(X_train, y_train, test_size=0.2)
+        # X_train, X_val, y_train, y_val = train_test_split(X_train, y_train, test_size=0.2)
 
         model = Sequential()
         model.add(Conv1D(filters=64, kernel_size=5, padding='same', activation=args.activation))
         model.add(MaxPooling1D(pool_size=4))
-        model.add(LSTM(128, return_sequences=True, input_shape=(X_train.shape[1], 1)))
+        model.add(LSTM(64, return_sequences=True, input_shape=(X_train.shape[1], 1)))
         model.add(Dropout(0.2))
-        model.add(LSTM(32))
+        model.add(LSTM(16))
         model.add(Dropout(0.2))
         model.add(Dense(1))
         model.compile(optimizer='adam', loss='mean_squared_error', metrics=['accuracy'])
-        model.fit(X_train, y_train, epochs=20, batch_size=64, validation_data=(X_val, y_val))
+        model.fit(X_train, y_train, epochs=20, batch_size=64, validation_data=(X_train_temp, y_train_temp))
         
         y_pred = model.predict(X_test).ravel()
         y_test = y_test.flatten()
@@ -230,7 +232,7 @@ if args.command == "train":
         plt.xlabel('False Positive Rate')
         # plt.show()
         fig.tight_layout()
-        plt.savefig("./lstm_results/leave_{}_trials_out_balanced_{}_{}_data.jpg".format(trials, args.activation, args.initial))
+        plt.savefig("./lstm_results/leave_{}_trials_out_balanced_{}_{}_smooth_test_val.jpg".format(trials, args.activation, args.initial))
 
 if args.command == "test":
     fig = plt.figure(figsize=(12, 6))
