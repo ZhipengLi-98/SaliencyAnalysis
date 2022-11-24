@@ -3,14 +3,14 @@ from matplotlib import pyplot as plt
 import os
 import numpy as np
 
-data_path = "./data"
+data_path = "./new_data"
 
 for user in os.listdir(data_path):
     user = "gww"
     print(user)
     files = []
     for condition in os.listdir(os.path.join(data_path, user)):
-        condition = "gww_virtuallab_video_color.csv"
+        condition = "gww_virtuallab_typing_color.csv"
         print(condition)
         files = []
         files.append(pd.read_csv(os.path.join(data_path, user, condition)))

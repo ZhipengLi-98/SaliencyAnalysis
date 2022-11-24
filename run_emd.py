@@ -79,7 +79,8 @@ def cal_emd(aug_path, gaze_path, sal_path, data_path, condition, latency):
             if last_contours_cnt > 0:
                 h0, v0 = determine_img(last_aug_img)
                 h1, v1 = determine_img(aug_img)
-                if h1 < 0.4:
+                # print(img_index, determine_img(aug_img), determine_img(last_aug_img))
+                if h1 < 2.5:
                     if h0 - h1 > 0.3 and v1 / v0 < 0.8:
                         print(img_index, determine_img(aug_img), determine_img(last_aug_img))
                         if len(temp_idx) > delay:
@@ -92,7 +93,7 @@ def cal_emd(aug_path, gaze_path, sal_path, data_path, condition, latency):
                         temp_idx.clear()
                         temp_emd_ass.clear()
                         temp_emd_ags.clear()
-                    elif v1 / v0 < 0.25:
+                    elif v1 / v0 < 0.5:
                         print(img_index, determine_img(aug_img), determine_img(last_aug_img))
                         if len(temp_idx) > delay:
                             one_cnt += 1
@@ -153,12 +154,12 @@ if __name__ == "__main__":
         # user = "gww"
         print(user)
         for condition in os.listdir(os.path.join(imgs_path, user)):
-            # condition = "gww_virtuallab_video_color"
+            # condition = "gww_virtuallab_typing_color"
             print(condition)
             aug_path = os.path.join(imgs_path, user, condition, condition + "_ani.mp4")
             gaze_path = os.path.join(imgs_path, user, condition, condition + "_gaze.mp4")
             sal_path = os.path.join(saliency_path, user, condition + "_all.mp4")
             data_path = os.path.join("./new_data", user)
             cal_emd(aug_path, gaze_path, sal_path, data_path, condition, latency)
-            # break
+        #     break
         # break
