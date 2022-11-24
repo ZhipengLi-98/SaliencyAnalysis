@@ -80,7 +80,7 @@ def cal_emd(aug_path, gaze_path, sal_path, data_path, condition, latency):
                 h0, v0 = determine_img(last_aug_img)
                 h1, v1 = determine_img(aug_img)
                 if h1 < 0.4:
-                    if h0 - h1 > 0.3:
+                    if h0 - h1 > 0.3 and v1 / v0 < 0.8:
                         print(img_index, determine_img(aug_img), determine_img(last_aug_img))
                         if len(temp_idx) > delay:
                             one_cnt += 1
