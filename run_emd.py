@@ -150,7 +150,7 @@ if __name__ == "__main__":
     saliency_path = "./formal/saliency"
     latency = 300
     for user in os.listdir(imgs_path):
-        user = "gww"
+        # user = "gww"
         print(user)
         for condition in os.listdir(os.path.join(imgs_path, user)):
             # condition = "gww_virtuallab_video_color"
@@ -161,4 +161,4 @@ if __name__ == "__main__":
             data_path = os.path.join("./new_data", user)
             cal_emd(aug_path, gaze_path, sal_path, data_path, condition, latency)
             # break
-        break
+        # break
