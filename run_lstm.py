@@ -25,10 +25,10 @@ args = parser.parse_args()
 if args.device == "cpu":
     os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
 
-data_path = "./smooth"
+data_path = "./data"
 
 n_frames = 10
-data_per_condition = 2400
+data_per_condition = 1200
 trials = 1
 
 Xs = {}
@@ -207,7 +207,7 @@ if args.command == "train":
         model.add(Dropout(0.2))
         model.add(Dense(1))
         model.compile(optimizer='adam', loss='mean_squared_error', metrics=['accuracy'])
-        model.fit(X_train, y_train, epochs=20, batch_size=64, validation_data=(X_train_temp, y_train_temp))
+        model.fit(X_train, y_train, epochs=50, batch_size=128, validation_data=(X_train_temp, y_train_temp))
         
         y_pred = model.predict(X_test).ravel()
         y_test = y_test.flatten()
@@ -232,7 +232,7 @@ if args.command == "train":
         plt.xlabel('False Positive Rate')
         # plt.show()
         fig.tight_layout()
-        plt.savefig("./lstm_results/leave_{}_trials_out_balanced_{}_{}_smooth_test_val.jpg".format(trials, args.activation, args.initial))
+        plt.savefig("./lstm_results/leave_{}_trials_out_balanced_{}_{}_data_test_val.jpg".format(trials, args.activation, args.initial))
 
 if args.command == "test":
     fig = plt.figure(figsize=(12, 6))
