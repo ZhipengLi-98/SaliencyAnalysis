@@ -7,7 +7,7 @@ from scipy.stats import wasserstein_distance
 import threading
 from scipy.ndimage import gaussian_filter
 import pandas as pd
-import colour
+# import colour
 
 def get_signature_from_heatmap(hm):
     nr = hm.shape[0]
@@ -31,11 +31,11 @@ def get_signature_from_heatmap(hm):
     # print sig
     return sig
 
-def compare_img(img1, img2):
-    img1_lab = cv2.cvtColor(img1.astype(np.float32) / 255, cv2.COLOR_RGB2HSV)
-    img2_lab = cv2.cvtColor(img2.astype(np.float32) / 255, cv2.COLOR_RGB2HSV)
-    delta = colour.delta_E(img1_lab, img2_lab)
-    return np.mean(delta)
+# def compare_img(img1, img2):
+#     img1_lab = cv2.cvtColor(img1.astype(np.float32) / 255, cv2.COLOR_RGB2HSV)
+#     img2_lab = cv2.cvtColor(img2.astype(np.float32) / 255, cv2.COLOR_RGB2HSV)
+#     delta = colour.delta_E(img1_lab, img2_lab)
+#     return np.mean(delta)
 
 def determine_img(img):
     img_hsv = cv2.cvtColor(img.astype(np.float32) / 255, cv2.COLOR_RGB2HSV)
