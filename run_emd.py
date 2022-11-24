@@ -140,15 +140,15 @@ if __name__ == "__main__":
     saliency_path = "./formal/saliency"
     latency = 300
     for user in os.listdir(imgs_path):
-        if user == "michael" or user == "nch":
-            continue
+        user = "fransico"
         print(user)
         for condition in os.listdir(os.path.join(imgs_path, user)):
+            condition = "fransico_virtuallab_video_scale"
             print(condition)
             aug_path = os.path.join(imgs_path, user, condition, condition + "_ani.mp4")
             gaze_path = os.path.join(imgs_path, user, condition, condition + "_gaze.mp4")
             sal_path = os.path.join(saliency_path, user, condition + "_all.mp4")
             data_path = os.path.join("./data", user)
             cal_emd(aug_path, gaze_path, sal_path, data_path, condition, latency)
-        #     break
-        # break
+            break
+        break

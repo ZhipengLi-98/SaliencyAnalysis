@@ -106,8 +106,7 @@ if __name__ == '__main__':
     imgs_path = "./formal/imgs"
     saliency_path = "./formal/saliency"
     for user in os.listdir(imgs_path):
-        if user == "michael" or user == "nch":
-            continue
+        user = "oladeji"
         print(user)
         for condition in os.listdir(os.path.join(imgs_path, user)):
             print(condition)
@@ -116,4 +115,4 @@ if __name__ == '__main__':
                     input_path = os.path.join(imgs_path, user, condition, folder)
                     output_path = os.path.join(saliency_path, user, folder)
                     main(input_path, output_path)
-        # break
+        break
