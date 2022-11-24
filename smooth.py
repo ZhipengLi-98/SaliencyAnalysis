@@ -12,9 +12,17 @@ for user in os.listdir(data_path):
         emd_ass = df["emd_ani_sal"].to_list()
         emd_ags = df["emd_ani_gaze"].to_list()
         labels = df["label"].to_list()
+        for i in range(1, len(idx)):
+            if idx[i] - idx[i - 2] == 2 and emd_ags[i - 2] != 0:
+                if emd_ags[i] / emd_ags[i - 2] < 0.4:
+                    labels[i] = 1
+        for i in range(1, len(idx)):
+            if labels[i - 1] == 1 and labels[i] == 0:
+                if idx[i] + 90 not in idx:
+                    labels[i] = 1
         for i in range(len(idx)):
             if labels[i] == 1:
-                if (idx[i] + 30) in idx:
+                if (idx[i] + 60) in idx:
                     labels[i] = 0
         temp_idx = []
         temp_emd_ass = []
@@ -34,3 +42,4 @@ for user in os.listdir(data_path):
         if not os.path.exists(os.path.join(output_path, user)):
             os.makedirs(os.path.join(output_path, user))
         new_df.to_csv(os.path.join(output_path, user, f))
+    # break
