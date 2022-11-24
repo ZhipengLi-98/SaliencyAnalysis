@@ -3,13 +3,14 @@ from matplotlib import pyplot as plt
 import os
 import numpy as np
 
-data_path = "./smooth"
+data_path = "./data"
 
 for user in os.listdir(data_path):
-    user = "dhc"
+    user = "gww"
     print(user)
     files = []
     for condition in os.listdir(os.path.join(data_path, user)):
+        condition = "gww_virtuallab_video_color.csv"
         print(condition)
         files = []
         files.append(pd.read_csv(os.path.join(data_path, user, condition)))
@@ -24,7 +25,7 @@ for user in os.listdir(data_path):
         axes.scatter(idx, labels)
         plt.legend()
         plt.show()
-        # break
+        break
     break
     class_0 = df[df['label'] == 0]
     class_1 = df[df['label'] == 1]

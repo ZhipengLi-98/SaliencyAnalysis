@@ -31,9 +31,11 @@ for test_user in os.listdir(data_path):
     test = pd.concat([class_0_over, class_1], axis=0)
 
     X_train = test['emd_ani_sal']
+    # X_train = test['emd_ani_gaze']
     y_train = test['label']
     y_train = y_train.astype('int')
     X_test = test_df['emd_ani_sal']
+    # X_test = test_df['emd_ani_gaze']
     y_test = test_df['label']
     y_test = y_test.astype('int')
     X_train = X_train.values.reshape(-1, 1)
@@ -46,8 +48,8 @@ for test_user in os.listdir(data_path):
     print(X_test.shape)
     print(y_test.shape)
 
-    clf = LogisticRegression()
-    # clf = svm.SVC(probability=True)
+    # clf = LogisticRegression()
+    clf = svm.SVC(probability=True)
     clf.fit(X_train, y_train)
     print(clf.score(X_test, y_test))
 
