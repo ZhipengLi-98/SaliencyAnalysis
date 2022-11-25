@@ -62,8 +62,8 @@ for user in os.listdir(data_path):
         class_1 = df[df['label'] == 1]
         class_count_0, class_count_1 = df['label'].value_counts()
         class_0_resample = class_0.sample(data_per_condition, replace=True)
-        class_1_resample = class_1.sample(data_per_condition, replace=True)
-        temp.append(class_0_resample)
+        class_1_resample = class_1.sample(class_count_0, replace=True)
+        temp.append(class_0)
         temp.append(class_1_resample)
 
     # df = pd.DataFrame({"img": t_x, "label": t_y})
@@ -172,8 +172,8 @@ if args.command == "train":
             X_train_temp, y_train_temp, X_test, y_test = test_trials(test_user, 0)
         elif args.initial == "add":
             X_train_temp, y_train_temp, X_test, y_test = test_trials(test_user, trials)
-        # X_train.extend(X_train_temp)
-        # y_train.extend(y_train_temp)
+        X_train.extend(X_train_temp)
+        y_train.extend(y_train_temp)
         # X_test = []
         # y_test = []
         # for i in range(len(Xs[test_user])):
@@ -196,7 +196,7 @@ if args.command == "train":
         print(X_test.shape)
         print(y_test.shape)
 
-        # X_train, X_val, y_train, y_val = train_test_split(X_train, y_train, test_size=0.2)
+        X_train, X_val, y_train, y_val = train_test_split(X_train, y_train, test_size=0.2)
 
         model = Sequential()
         model.add(Conv1D(filters=64, kernel_size=5, padding='same', activation=args.activation))
@@ -207,7 +207,7 @@ if args.command == "train":
         model.add(Dropout(0.2))
         model.add(Dense(1))
         model.compile(optimizer='adam', loss='mean_squared_error', metrics=['accuracy'])
-        model.fit(X_train, y_train, epochs=50, batch_size=128, validation_data=(X_train_temp, y_train_temp))
+        model.fit(X_train, y_train, epochs=20, batch_size=128, validation_data=(X_val, y_val))
         
         y_pred = model.predict(X_test).ravel()
         y_test = y_test.flatten()
@@ -232,7 +232,7 @@ if args.command == "train":
         plt.xlabel('False Positive Rate')
         # plt.show()
         fig.tight_layout()
-        plt.savefig("./lstm_results/leave_{}_trials_out_balanced_{}_{}_new_data_test_val.jpg".format(trials, args.activation, args.initial))
+        plt.savefig("./lstm_results/leave_{}_trials_out_unbalanced_large_{}_{}_new_data.jpg".format(trials, args.activation, args.initial))
 
 if args.command == "test":
     fig = plt.figure(figsize=(12, 6))

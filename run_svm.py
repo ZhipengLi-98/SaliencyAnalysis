@@ -5,7 +5,7 @@ import sklearn.metrics as metrics
 from matplotlib import pyplot as plt
 from sklearn.linear_model import LogisticRegression
 
-data_path = "./smooth"
+data_path = "./new_data"
 
 for test_user in os.listdir(data_path):
     print(test_user)
