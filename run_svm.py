@@ -48,8 +48,8 @@ for test_user in os.listdir(data_path):
     print(X_test.shape)
     print(y_test.shape)
 
-    clf = LogisticRegression()
-    # clf = svm.SVC(probability=True)
+    # clf = LogisticRegression()
+    clf = svm.SVC(probability=True)
     clf.fit(X_train, y_train)
     print(clf.score(X_test, y_test))
 
@@ -65,4 +65,4 @@ for test_user in os.listdir(data_path):
     plt.ylim([0, 1])
     plt.ylabel('True Positive Rate')
     plt.xlabel('False Positive Rate')
-    plt.show()
+plt.show()
