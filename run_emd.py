@@ -56,6 +56,7 @@ def cal_emd(aug_path, gaze_path, sal_path, data_path, condition, latency):
     temp_emd_ass = []
     one_cnt = 0
     last_contours_cnt = 0
+    last_one_index = -1
     for img_index in tqdm(range(1, cnt)):
         try:
             last_aug_img = cv2.imread(os.path.join(aug_path, "frame{}.jpg".format(img_index - 1)))
@@ -80,31 +81,49 @@ def cal_emd(aug_path, gaze_path, sal_path, data_path, condition, latency):
                 h0, v0 = determine_img(last_aug_img)
                 h1, v1 = determine_img(aug_img)
                 # print(img_index, determine_img(aug_img), determine_img(last_aug_img))
-                if h1 < 2.5:
-                    if h0 - h1 > 0.3 and v1 / v0 < 0.8:
-                        print(img_index, determine_img(aug_img), determine_img(last_aug_img))
-                        if len(temp_idx) > delay:
-                            one_cnt += 1
-                            idx.extend(temp_idx[: len(temp_idx) - delay + 1])
-                            emd_ass.extend(temp_emd_ass[: len(temp_idx) - delay + 1])
-                            emd_ags.extend(temp_emd_ags[: len(temp_idx) - delay + 1])
-                            labels.extend([0 for temp_i in range(len(temp_idx) - delay)])
-                            labels.extend([1])
-                        temp_idx.clear()
-                        temp_emd_ass.clear()
-                        temp_emd_ags.clear()
-                    elif v1 / v0 < 0.5:
-                        print(img_index, determine_img(aug_img), determine_img(last_aug_img))
-                        if len(temp_idx) > delay:
-                            one_cnt += 1
-                            idx.extend(temp_idx[: len(temp_idx) - delay + 1])
-                            emd_ass.extend(temp_emd_ass[: len(temp_idx) - delay + 1])
-                            emd_ags.extend(temp_emd_ags[: len(temp_idx) - delay + 1])
-                            labels.extend([0 for temp_i in range(len(temp_idx) - delay)])
-                            labels.extend([1])
-                        temp_idx.clear()
-                        temp_emd_ass.clear()
-                        temp_emd_ags.clear()
+                if h1 < 2.5 and h0 - h1 > 0.3 and v1 / v0 < 0.6:
+                    print(img_index, determine_img(aug_img), determine_img(last_aug_img))
+                    if len(temp_idx) > delay:
+                        one_cnt += 1
+                        idx.extend(temp_idx[: len(temp_idx) - delay])
+                        idx.append(img_index)
+                        emd_ass.extend(temp_emd_ass[: len(temp_idx) - delay])
+                        emd_ags.extend(temp_emd_ags[: len(temp_idx) - delay])
+                        emd_aug_sal, lowerbound, flow_matrix = cv2.EMD(aug_flat, sal_flat, distType=cv2.DIST_L2, lowerBound=0)
+                        emd_aug_gaze, lowerbound, flow_matrix = cv2.EMD(aug_flat, gaze_flat, distType=cv2.DIST_L2, lowerBound=0)
+                        emd_ass.append(emd_aug_sal)
+                        emd_ags.append(emd_aug_gaze)
+                        labels.extend([0 for temp_i in range(len(temp_idx) - delay)])
+                        labels.extend([1])
+                        last_one_index = idx[-1]
+                    temp_idx.clear()
+                    temp_emd_ass.clear()
+                    temp_emd_ags.clear()
+                    continue
+                elif h1 < 2.5 and v1 / v0 < 0.5:
+                    print(img_index, determine_img(aug_img), determine_img(last_aug_img))
+                    if len(temp_idx) > delay:
+                        one_cnt += 1
+                        idx.extend(temp_idx[: len(temp_idx) - delay])
+                        idx.append(img_index)
+                        emd_ass.extend(temp_emd_ass[: len(temp_idx) - delay])
+                        emd_ags.extend(temp_emd_ags[: len(temp_idx) - delay])
+                        emd_aug_sal, lowerbound, flow_matrix = cv2.EMD(aug_flat, sal_flat, distType=cv2.DIST_L2, lowerBound=0)
+                        emd_aug_gaze, lowerbound, flow_matrix = cv2.EMD(aug_flat, gaze_flat, distType=cv2.DIST_L2, lowerBound=0)
+                        emd_ass.append(emd_aug_sal)
+                        emd_ags.append(emd_aug_gaze)
+                        labels.extend([0 for temp_i in range(len(temp_idx) - delay)])
+                        labels.extend([1])
+                        last_one_index = idx[-1]
+                    temp_idx.clear()
+                    temp_emd_ass.clear()
+                    temp_emd_ags.clear()
+                    continue
+                else:
+                    # print(img_index, last_one_index)
+                    if img_index - last_one_index < 30:
+                        print(img_index, last_one_index)
+                        continue
         last_contours_cnt = len(contours)
         
         aug_dis = gaussian_filter(aug_binary, sigma=5)
@@ -154,7 +173,7 @@ if __name__ == "__main__":
         # user = "gww"
         print(user)
         for condition in os.listdir(os.path.join(imgs_path, user)):
-            # condition = "gww_virtuallab_typing_color"
+            # condition = "gww_physicalhome2_typing_scale"
             print(condition)
             aug_path = os.path.join(imgs_path, user, condition, condition + "_ani.mp4")
             gaze_path = os.path.join(imgs_path, user, condition, condition + "_gaze.mp4")
