@@ -35,11 +35,12 @@ Xs = {}
 ys = {}
 
 for user in os.listdir(data_path):
+    print(user)
     t_x = []
     t_y = []
     temp = []
     for condition in os.listdir(os.path.join(data_path, user)):
-        # print(user, condition)
+        print(user, condition)
         temp_x = []
         temp_y = []
         df = pd.read_csv(os.path.join(data_path, user, condition))
@@ -57,9 +58,11 @@ for user in os.listdir(data_path):
             if idx[i] - idx[i - n_frames] == n_frames:
                 temp_x.append(X[i - n_frames: i])
                 temp_y.append(y[i])
+        print(len(temp_x))
         df = pd.DataFrame({"img": temp_x, "label": temp_y})
         class_0 = df[df['label'] == 0]
         class_1 = df[df['label'] == 1]
+        print(df['label'].value_counts())
         class_count_0, class_count_1 = df['label'].value_counts()
         class_0_resample = class_0.sample(data_per_condition, replace=True)
         class_1_resample = class_1.sample(class_count_0, replace=True)
@@ -158,7 +161,7 @@ if args.command == "train":
         X_test = []
         y_test = []
         for user in os.listdir(data_path):
-            if user != test_user and user in Xs.keys():
+            if user == test_user and user in Xs.keys():
                 X_train.extend(Xs[user])
                 y_train.extend(ys[user])
         
@@ -232,7 +235,8 @@ if args.command == "train":
         plt.xlabel('False Positive Rate')
         # plt.show()
         fig.tight_layout()
-        plt.savefig("./lstm_results/leave_{}_trials_out_unbalanced_{}_{}_new_data.jpg".format(trials, args.activation, args.initial))
+        # plt.savefig("./lstm_results/leave_{}_trials_out_unbalanced_{}_{}_new_data.jpg".format(trials, args.activation, args.initial))
+        plt.show()
 
 if args.command == "test":
     fig = plt.figure(figsize=(12, 6))

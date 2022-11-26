@@ -85,40 +85,30 @@ def cal_emd(aug_path, gaze_path, sal_path, data_path, condition, latency):
                     print(img_index, determine_img(aug_img), determine_img(last_aug_img))
                     if len(temp_idx) > delay:
                         one_cnt += 1
-                        idx.extend(temp_idx[: len(temp_idx) - delay])
-                        idx.append(img_index)
-                        emd_ass.extend(temp_emd_ass[: len(temp_idx) - delay])
-                        emd_ags.extend(temp_emd_ags[: len(temp_idx) - delay])
-                        emd_aug_sal, lowerbound, flow_matrix = cv2.EMD(aug_flat, sal_flat, distType=cv2.DIST_L2, lowerBound=0)
-                        emd_aug_gaze, lowerbound, flow_matrix = cv2.EMD(aug_flat, gaze_flat, distType=cv2.DIST_L2, lowerBound=0)
-                        emd_ass.append(emd_aug_sal)
-                        emd_ags.append(emd_aug_gaze)
+                        idx.extend(temp_idx[: len(temp_idx) - delay + 1])
+                        emd_ass.extend(temp_emd_ass[: len(temp_idx) - delay + 1])
+                        emd_ags.extend(temp_emd_ags[: len(temp_idx) - delay + 1])
                         labels.extend([0 for temp_i in range(len(temp_idx) - delay)])
                         labels.extend([1])
                         last_one_index = idx[-1]
                     temp_idx.clear()
                     temp_emd_ass.clear()
                     temp_emd_ags.clear()
-                    continue
+                    # continue
                 elif h1 < 2.5 and v1 / v0 < 0.5:
                     print(img_index, determine_img(aug_img), determine_img(last_aug_img))
                     if len(temp_idx) > delay:
                         one_cnt += 1
-                        idx.extend(temp_idx[: len(temp_idx) - delay])
-                        idx.append(img_index)
-                        emd_ass.extend(temp_emd_ass[: len(temp_idx) - delay])
-                        emd_ags.extend(temp_emd_ags[: len(temp_idx) - delay])
-                        emd_aug_sal, lowerbound, flow_matrix = cv2.EMD(aug_flat, sal_flat, distType=cv2.DIST_L2, lowerBound=0)
-                        emd_aug_gaze, lowerbound, flow_matrix = cv2.EMD(aug_flat, gaze_flat, distType=cv2.DIST_L2, lowerBound=0)
-                        emd_ass.append(emd_aug_sal)
-                        emd_ags.append(emd_aug_gaze)
+                        idx.extend(temp_idx[: len(temp_idx) - delay + 1])
+                        emd_ass.extend(temp_emd_ass[: len(temp_idx) - delay + 1])
+                        emd_ags.extend(temp_emd_ags[: len(temp_idx) - delay + 1])
                         labels.extend([0 for temp_i in range(len(temp_idx) - delay)])
                         labels.extend([1])
                         last_one_index = idx[-1]
                     temp_idx.clear()
                     temp_emd_ass.clear()
                     temp_emd_ags.clear()
-                    continue
+                    # continue
                 else:
                     # print(img_index, last_one_index)
                     if img_index - last_one_index < 30:
