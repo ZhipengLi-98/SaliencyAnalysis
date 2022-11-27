@@ -6,7 +6,7 @@ feature_path = "./features"
 merge_path = "./merge"
 
 for user in os.listdir(data_path):
-    user = "plh"
+    user = "zyh"
     print(user)
     for condition in os.listdir(os.path.join(data_path, user)):
         print(condition)

@@ -7,7 +7,7 @@ data_path = "./new_data"
 feature_path = "./features"
 
 for user in os.listdir(data_path):
-    user = "jjx"
+    user = "gww"
     print(user)
     files = []
     for condition in os.listdir(os.path.join(data_path, user)):

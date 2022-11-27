@@ -30,9 +30,11 @@ for test_user in os.listdir(data_path):
     class_0_over = class_0.sample(class_count_1, replace=True)
     class_1_over = class_1.sample(class_count_0, replace=True)
 
+    # test = pd.concat([class_0, class_1_over], axis=0)
     test = pd.concat([class_0_over, class_1], axis=0)
 
     fea = ["emd_ani_sal", "labDelta", "area", "center_x", "center_y"]
+    # fea = ["labDelta", "area", "center_x", "center_y"]
     # fea = ["emd_ani_sal", "labDelta"]
     # fea = ["emd_ani_sal"]
 
