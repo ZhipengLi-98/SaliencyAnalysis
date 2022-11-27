@@ -25,7 +25,7 @@ args = parser.parse_args()
 if args.device == "cpu":
     os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
 
-data_path = "./new_data"
+data_path = "./merge"
 
 n_frames = 10
 data_per_condition = 1200
@@ -33,6 +33,7 @@ trials = 1
 
 Xs = {}
 ys = {}
+fea = ["emd_ani_sal", "labDelta", "area", "center_x", "center_y"]
 
 for user in os.listdir(data_path):
     t_x = []
@@ -42,9 +43,10 @@ for user in os.listdir(data_path):
         temp_x = []
         temp_y = []
         df = pd.read_csv(os.path.join(data_path, user, condition))
+
         # df = pd.read_csv("./data/{}/data_{}_{}_{}.csv".format(user, condition.split("_")[1], condition.split("_")[2], user))
         idx = df["index"].tolist()
-        X = df["emd_ani_sal"].tolist()
+        X = df[fea].values
         # X = df["emd_ani_gaze"].tolist()
         y = df["label"].tolist()
 
@@ -106,7 +108,8 @@ def test_trials(test_user, trial_number):
         df = pd.read_csv(os.path.join(data_path, test_user, condition))
         # df = pd.read_csv("./data/{}/data_{}_{}_{}.csv".format(user, condition.split("_")[1], condition.split("_")[2], user))
         idx = df["index"].tolist()
-        X = df["emd_ani_sal"].tolist()
+        X = df[fea].values
+        # X = df["emd_ani_sal"].tolist()
         # X = df["emd_ani_gaze"].tolist()
         y = df["label"].tolist()
 
@@ -185,31 +188,33 @@ if args.command == "train":
         #         X_test.append(Xs[test_user][i])
         #         y_test.append(ys[test_user][i])
         
-        X_train = np.array(X_train).reshape(-1, n_frames, 1)
+        X_train = np.array(X_train).reshape(-1, n_frames, len(fea))
         y_train = np.array(y_train).reshape(-1, 1, 1)
-        X_train_temp = np.array(X_train_temp).reshape(-1, n_frames, 1)
+        X_train_temp = np.array(X_train_temp).reshape(-1, n_frames, len(fea))
         y_train_temp = np.array(y_train_temp).reshape(-1, 1, 1)
-        X_test = np.array(X_test).reshape(-1, n_frames, 1)
+        X_test = np.array(X_test).reshape(-1, n_frames, len(fea))
         y_test = np.array(y_test).reshape(-1, 1, 1)
 
         print(X_train.shape)
         print(y_train.shape)
+        print(X_train_temp.shape)
+        print(y_train_temp.shape)
         print(X_test.shape)
         print(y_test.shape)
 
         # X_train, X_test, y_train, y_test = train_test_split(X_train, y_train, test_size=0.2)
-        # X_train, X_val, y_train, y_val = train_test_split(X_train, y_train, test_size=0.2)
+        X_train, X_val, y_train, y_val = train_test_split(X_train, y_train, test_size=0.2)
 
         model = Sequential()
-        model.add(Conv1D(filters=64, kernel_size=5, padding='same', activation=args.activation))
-        model.add(MaxPooling1D(pool_size=4))
-        model.add(LSTM(64, return_sequences=True, input_shape=(X_train.shape[1], 1)))
+        # model.add(Conv1D(filters=64, kernel_size=5, padding='same', activation=args.activation))
+        # model.add(MaxPooling1D(pool_size=4))
+        model.add(LSTM(64, return_sequences=True, input_shape=(X_train.shape[1], X_train.shape[2])))
         model.add(Dropout(0.5))
         model.add(LSTM(16))
         model.add(Dropout(0.5))
         model.add(Dense(1))
-        model.compile(optimizer='adam', loss='mean_squared_error', metrics=['binary_accuracy'])
-        model.fit(X_train, y_train, epochs=50, batch_size=64, validation_data=(X_train_temp, y_train_temp))
+        model.compile(optimizer='adam', loss='mae', metrics=['accuracy'])
+        model.fit(X_train, y_train, epochs=50, batch_size=64, validation_data=(X_val, y_val))
         
         y_pred = model.predict(X_test).ravel()
         y_test = y_test.flatten()
@@ -234,7 +239,7 @@ if args.command == "train":
         plt.xlabel('False Positive Rate')
         # plt.show()
         fig.tight_layout()
-        plt.savefig("./lstm_results/leave_{}_trials_out_balanced_{}_{}_new_data_test_val.jpg".format(trials, args.activation, args.initial))
+        plt.savefig("./lstm_results/leave_{}_trials_out_balanced_{}_{}_new_data_merge.jpg".format(trials, args.activation, args.initial))
         # plt.show()
 
 if args.command == "test":
