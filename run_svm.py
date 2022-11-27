@@ -4,9 +4,11 @@ import os
 import sklearn.metrics as metrics
 from matplotlib import pyplot as plt
 from sklearn.linear_model import LogisticRegression
+from sklearn.model_selection import train_test_split
 
-data_path = "./new_data"
+data_path = "./merge"
 
+fig = plt.figure(figsize=(12, 6))
 for test_user in os.listdir(data_path):
     print(test_user)
     files = []
@@ -30,16 +32,20 @@ for test_user in os.listdir(data_path):
 
     test = pd.concat([class_0_over, class_1], axis=0)
 
-    X_train = test['emd_ani_sal']
+    fea = ["emd_ani_sal", "labDelta", "area", "center_x", "center_y"]
+    # fea = ["emd_ani_sal", "labDelta"]
+    # fea = ["emd_ani_sal"]
+
+    X_train = test[fea]
     # X_train = test['emd_ani_gaze']
     y_train = test['label']
     y_train = y_train.astype('int')
-    X_test = test_df['emd_ani_sal']
+    X_test = test_df[fea]
     # X_test = test_df['emd_ani_gaze']
     y_test = test_df['label']
     y_test = y_test.astype('int')
-    X_train = X_train.values.reshape(-1, 1)
-    X_test = X_test.values.reshape(-1, 1)
+    X_train = X_train.values.reshape(-1, len(fea))
+    X_test = X_test.values.reshape(-1, len(fea))
     y_train = y_train.values.reshape(-1, 1)
     y_test = y_test.values.reshape(-1, 1)
 
@@ -48,8 +54,10 @@ for test_user in os.listdir(data_path):
     print(X_test.shape)
     print(y_test.shape)
 
-    # clf = LogisticRegression()
-    clf = svm.SVC(probability=True)
+    # X_train, X_test, y_train, y_test = train_test_split(X_train, y_train, test_size=0.2)
+
+    clf = LogisticRegression()
+    # clf = svm.SVC(probability=True)
     clf.fit(X_train, y_train)
     print(clf.score(X_test, y_test))
 
@@ -58,11 +66,13 @@ for test_user in os.listdir(data_path):
     fpr, tpr, threshold = metrics.roc_curve(y_test, preds)
     roc_auc = metrics.auc(fpr, tpr)
 
-    plt.plot(fpr, tpr, label = 'AUC = %0.2f' % roc_auc)
-    plt.legend(loc = 'lower right')
+    plt.plot(fpr, tpr, label = '{} AUC = %0.2f'.format(test_user) % roc_auc)
+    plt.legend(loc = 'lower right', fontsize="small", bbox_to_anchor=(1.2, 0))
     plt.plot([0, 1], [0, 1],'r--')
     plt.xlim([0, 1])
     plt.ylim([0, 1])
     plt.ylabel('True Positive Rate')
     plt.xlabel('False Positive Rate')
-plt.show()
+fig.tight_layout()
+# plt.show()
+plt.savefig("./logireg.jpg")

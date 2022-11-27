@@ -81,7 +81,7 @@ def cal_emd(aug_path, gaze_path, sal_path, data_path, condition, latency):
                 h0, v0 = determine_img(last_aug_img)
                 h1, v1 = determine_img(aug_img)
                 # print(img_index, determine_img(aug_img), determine_img(last_aug_img))
-                if h1 < 2.5 and h0 - h1 > 0.3 and v1 / v0 < 0.6:
+                if h1 < 2.5 and h0 - h1 > 0.25 and v1 / v0 < 0.7:
                     print(img_index, determine_img(aug_img), determine_img(last_aug_img))
                     if len(temp_idx) > delay:
                         one_cnt += 1
@@ -94,7 +94,7 @@ def cal_emd(aug_path, gaze_path, sal_path, data_path, condition, latency):
                     temp_idx.clear()
                     temp_emd_ass.clear()
                     temp_emd_ags.clear()
-                    # continue
+                    continue
                 elif h1 < 2.5 and v1 / v0 < 0.5:
                     print(img_index, determine_img(aug_img), determine_img(last_aug_img))
                     if len(temp_idx) > delay:
@@ -108,7 +108,7 @@ def cal_emd(aug_path, gaze_path, sal_path, data_path, condition, latency):
                     temp_idx.clear()
                     temp_emd_ass.clear()
                     temp_emd_ags.clear()
-                    # continue
+                    continue
                 else:
                     # print(img_index, last_one_index)
                     if img_index - last_one_index < 30:
@@ -160,10 +160,10 @@ if __name__ == "__main__":
     saliency_path = "./formal/saliency"
     latency = 300
     for user in os.listdir(imgs_path):
-        # user = "gww"
+        # user = "hyw"
         print(user)
         for condition in os.listdir(os.path.join(imgs_path, user)):
-            # condition = "gww_physicalhome2_typing_scale"
+            # condition = "hyw_physicalhome2_video_pos"
             print(condition)
             aug_path = os.path.join(imgs_path, user, condition, condition + "_ani.mp4")
             gaze_path = os.path.join(imgs_path, user, condition, condition + "_gaze.mp4")

@@ -4,28 +4,38 @@ import os
 import numpy as np
 
 data_path = "./new_data"
+feature_path = "./features"
 
 for user in os.listdir(data_path):
-    user = "gww"
+    user = "jjx"
     print(user)
     files = []
     for condition in os.listdir(os.path.join(data_path, user)):
-        condition = "gww_physicalhome2_typing_scale.csv"
+        # condition = "gww_physicalhome2_typing_scale.csv"
         print(condition)
         files = []
         files.append(pd.read_csv(os.path.join(data_path, user, condition)))
         df = pd.concat(files)
+
+        feature_file = os.path.join(feature_path, user, condition)
+        feature_df = pd.read_csv(feature_file)
+
         idx = df["index"].to_list()
         emd_ass = df["emd_ani_sal"].to_list()
         emd_ags = df["emd_ani_gaze"].to_list()
         labels = df["label"].to_list()
+
+        feature_idx = feature_df["index"].to_list()
+        labDelta = feature_df["labDelta"].to_list()
+
         fig, axes = plt.subplots(1, 1)
         axes.plot(idx, emd_ass, label="saliency")
         axes.plot(idx, emd_ags, label="gaze")
+        axes.plot(feature_idx, labDelta, label="labDelta")
         axes.scatter(idx, labels)
         plt.legend()
         plt.show()
-        break
+        # break
     break
     class_0 = df[df['label'] == 0]
     class_1 = df[df['label'] == 1]
