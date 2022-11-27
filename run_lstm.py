@@ -33,7 +33,9 @@ trials = 1
 
 Xs = {}
 ys = {}
-fea = ["emd_ani_sal", "labDelta", "area", "center_x", "center_y"]
+# fea = ["emd_ani_sal", "labDelta", "area", "center_x", "center_y"]
+fea = ["emd_ani_sal", "labDelta", "area"]
+# fea = ["emd_ani_sal"]
 
 for user in os.listdir(data_path):
     t_x = []
@@ -203,18 +205,18 @@ if args.command == "train":
         print(y_test.shape)
 
         # X_train, X_test, y_train, y_test = train_test_split(X_train, y_train, test_size=0.2)
-        X_train, X_val, y_train, y_val = train_test_split(X_train, y_train, test_size=0.2)
+        # X_train, X_val, y_train, y_val = train_test_split(X_train, y_train, test_size=0.2)
 
         model = Sequential()
         # model.add(Conv1D(filters=64, kernel_size=5, padding='same', activation=args.activation))
         # model.add(MaxPooling1D(pool_size=4))
-        model.add(LSTM(64, return_sequences=True, input_shape=(X_train.shape[1], X_train.shape[2])))
-        model.add(Dropout(0.5))
-        model.add(LSTM(16))
-        model.add(Dropout(0.5))
+        model.add(LSTM(128, return_sequences=True, input_shape=(X_train.shape[1], X_train.shape[2])))
+        model.add(Dropout(0.2))
+        model.add(LSTM(32))
+        model.add(Dropout(0.2))
         model.add(Dense(1))
-        model.compile(optimizer='adam', loss='mae', metrics=['accuracy'])
-        model.fit(X_train, y_train, epochs=50, batch_size=64, validation_data=(X_val, y_val))
+        model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
+        model.fit(X_train, y_train, epochs=20, batch_size=64, validation_data=(X_train_temp, y_train_temp))
         
         y_pred = model.predict(X_test).ravel()
         y_test = y_test.flatten()
@@ -239,7 +241,7 @@ if args.command == "train":
         plt.xlabel('False Positive Rate')
         # plt.show()
         fig.tight_layout()
-        plt.savefig("./lstm_results/leave_{}_trials_out_balanced_{}_{}_new_data_merge.jpg".format(trials, args.activation, args.initial))
+        plt.savefig("./lstm_results/leave_{}_trials_out_balanced_{}_{}_new_data_merge_less_feature_test_val.jpg".format(trials, args.activation, args.initial))
         # plt.show()
 
 if args.command == "test":

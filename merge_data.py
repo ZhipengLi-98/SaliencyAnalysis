@@ -6,7 +6,8 @@ feature_path = "./features"
 merge_path = "./merge"
 
 for user in os.listdir(data_path):
-    user = "zyh"
+    if user in os.listdir(merge_path):
+        continue
     print(user)
     for condition in os.listdir(os.path.join(data_path, user)):
         print(condition)
@@ -38,4 +39,4 @@ for user in os.listdir(data_path):
         if not os.path.exists(path):
             os.makedirs(path)
         data_df.to_csv(os.path.join(path, condition) + ".csv")
-    break
+    # break
