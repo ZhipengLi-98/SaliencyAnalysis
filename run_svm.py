@@ -50,14 +50,14 @@ for test_user in os.listdir(data_path):
         class_0 = test_df[test_df['label'] == 0]
         class_1 = test_df[test_df['label'] == 1]
         class_count_0, class_count_1 = test_df['label'].value_counts()
-        class_0_over = class_0.sample(data_per_user * 2, replace=True)
+        class_0_over = class_0.sample(int(class_count_0 / 1.2), replace=True)
         class_1_over = class_1.sample(data_per_user * 2, replace=True)
 
         # test_df = pd.concat([class_0, class_1_over], axis=0)
         if test_user == "hyw" or test_user == "lzj":
-            test_df = pd.concat([class_0, class_1_over], axis=0)
+            test_df = pd.concat([class_0, class_1], axis=0)
         else:
-            test_df = pd.concat([class_0_over, class_1_over], axis=0)
+            test_df = pd.concat([class_0, class_1], axis=0)
 
         fea = ["emd_ani_sal", "labDelta", "area", "center_x", "center_y"]
         fea_MA = ["emd_ani_sal_MA", "labDelta_MA", "area_MA", "center_x_MA", "center_y_MA"]
@@ -130,5 +130,5 @@ for test_user in os.listdir(data_path):
     plt.xlabel('False Positive Rate')
     fig.tight_layout()
     # plt.show()
-    plt.savefig("./logireg_smooth_pred.jpg")
+    plt.savefig("./logireg_smooth_pred_7.jpg")
     # break
