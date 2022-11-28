@@ -26,16 +26,17 @@ for user in os.listdir(data_path):
         labels = df["label"].to_list()
 
         feature_idx = feature_df["index"].to_list()
-        labDelta = feature_df["labDelta"].to_list()
+        # labDelta = feature_df["labDelta"].to_list()
+        eucDist = feature_df["eucDist"].to_list()
 
         fig, axes = plt.subplots(1, 1)
         axes.plot(idx, emd_ass, label="saliency")
         axes.plot(idx, emd_ags, label="gaze")
-        axes.plot(feature_idx, labDelta, label="labDelta")
+        axes.plot(feature_idx, eucDist, label="eucDist")
         axes.scatter(idx, labels)
         plt.legend()
         plt.show()
-        # break
+        break
     break
     class_0 = df[df['label'] == 0]
     class_1 = df[df['label'] == 1]

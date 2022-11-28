@@ -12,6 +12,9 @@ def compare_img(img1, img2):
     delta = colour.delta_E(img1_lab, img2_lab)
     return np.mean(delta)
 
+def calculate_distance(i1, i2):
+    return np.sum((i1 - i2) ** 2) / 1e8
+
 def cal_feature(aug_path, gaze_path, sal_path, data_path, condition):
     try:
         cnt = len(os.listdir(aug_path))
@@ -22,6 +25,7 @@ def cal_feature(aug_path, gaze_path, sal_path, data_path, condition):
     area = []
     center_x = []
     center_y = []
+    eucDist = []
     for img_index in tqdm(range(1, cnt)):
         try:
             last_aug_img = cv2.imread(os.path.join(aug_path, "frame{}.jpg".format(img_index - 1)))
@@ -49,6 +53,7 @@ def cal_feature(aug_path, gaze_path, sal_path, data_path, condition):
                     max_area = cv2.contourArea(c)
                     max_c = c
             area.append(max_area)
+            eucDist.append(calculate_distance(sal_img, aug_gray))
             try:
                 moments = cv2.moments(max_c)
                 center = (int(moments['m10']/moments['m00']), int(moments['m01']/moments['m00']))
@@ -62,7 +67,7 @@ def cal_feature(aug_path, gaze_path, sal_path, data_path, condition):
                 # print(max_c[0][0][0], max_c[0][0][1])
     if not os.path.exists(data_path):
         os.makedirs(data_path)
-    df = pd.DataFrame({"index": idx, "labDelta": labDelta, "area": area, "center_x": center_x, "center_y": center_y})
+    df = pd.DataFrame({"index": idx, "labDelta": labDelta, "area": area, "center_x": center_x, "center_y": center_y, "eucDist": eucDist})
     df.to_csv(os.path.join(data_path, condition) + ".csv")
     return
 
@@ -70,6 +75,7 @@ if __name__ == "__main__":
     imgs_path = "./formal/imgs"
     saliency_path = "./formal/saliency"
     for user in os.listdir(imgs_path):
+        user = "gww"
         print(user)
         for condition in os.listdir(os.path.join(imgs_path, user)):
             # condition = "hyw_physicalhome2_typing_color"
@@ -80,4 +86,4 @@ if __name__ == "__main__":
             data_path = os.path.join("./features", user)
             cal_feature(aug_path, gaze_path, sal_path, data_path, condition)
             # break
-        # break
+        break
