@@ -15,6 +15,7 @@ data_per_user = 12000
 
 user_list = ["fransico", "gww", "jjx", "lc", "wrl", "zyh"]
 
+aucs = []
 fig = plt.figure(figsize=(12, 6))
 for test_user in os.listdir(data_path):
     if test_user == "gyy":
@@ -57,7 +58,7 @@ for test_user in os.listdir(data_path):
         if test_user == "hyw" or test_user == "lzj":
             test_df = pd.concat([class_0, class_1], axis=0)
         else:
-            test_df = pd.concat([class_0, class_1], axis=0)
+            test_df = pd.concat([class_0_over, class_1], axis=0)
 
         fea = ["emd_ani_sal", "labDelta", "area", "center_x", "center_y"]
         fea_MA = ["emd_ani_sal_MA", "labDelta_MA", "area_MA", "center_x_MA", "center_y_MA"]
@@ -121,7 +122,9 @@ for test_user in os.listdir(data_path):
             best_fpr = fpr
             best_tpr = tpr
 
-    plt.plot(best_fpr, best_tpr, label = 'AUC = %0.2f' % best_auc)
+    aucs.append(best_auc)
+    print(np.mean(np.array(aucs)))
+    plt.plot(best_fpr, best_tpr, label = '{} AUC = %0.2f'.format(test_user) % best_auc)
     plt.legend(loc = 'lower right', fontsize="small", bbox_to_anchor=(1.2, 0))
     plt.plot([0, 1], [0, 1],'r--')
     plt.xlim([0, 1])
@@ -130,5 +133,5 @@ for test_user in os.listdir(data_path):
     plt.xlabel('False Positive Rate')
     fig.tight_layout()
     # plt.show()
-    plt.savefig("./logireg_smooth_pred_7.jpg")
+    plt.savefig("./logireg_smooth_pred_24_users.jpg")
     # break
