@@ -7,7 +7,7 @@ data_path = "./new_data"
 feature_path = "./features"
 
 for user in os.listdir(data_path):
-    user = "gww"
+    user = "gy"
     print(user)
     files = []
     for condition in os.listdir(os.path.join(data_path, user)):
@@ -36,7 +36,7 @@ for user in os.listdir(data_path):
         axes.scatter(idx, labels)
         plt.legend()
         plt.show()
-        break
+        # break
     break
     class_0 = df[df['label'] == 0]
     class_1 = df[df['label'] == 1]
