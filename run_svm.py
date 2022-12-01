@@ -16,10 +16,10 @@ data_per_user = 12000
 
 fig = plt.figure(figsize=(12, 6))
 
-test_user_num = 12
+test_user_num = 3
 
 test_user_list = [[i] for i in os.listdir(data_path)]
-test_user_list = [random.sample(os.listdir(data_path), test_user_num) for i in range(24)]
+test_user_list = [random.sample(os.listdir(data_path), test_user_num) for i in range(100)]
 
 aucs = []
 for test_user in test_user_list:
@@ -44,25 +44,24 @@ for test_user in test_user_list:
     class_1_over = class_1.sample(data_per_user * 10, replace=True)
 
     # test = pd.concat([class_0, class_1_over], axis=0)
-    test = pd.concat([class_0_over, class_1_over], axis=0)
-
+    balanced_df = pd.concat([class_0_over, class_1_over], axis=0)
+    
     class_0 = test_df[test_df['label'] == 0]
     class_1 = test_df[test_df['label'] == 1]
     class_count_0, class_count_1 = test_df['label'].value_counts()
     class_0_over = class_0.sample(class_count_0, replace=True)
     class_1_over = class_1.sample(data_per_user * 2, replace=True)
 
-    test_df = pd.concat([class_0, class_1_over], axis=0)
+    # test_df = pd.concat([class_0_over, class_1], axis=0)
 
     fea = ["emd_ani_sal", "labDelta", "area", "center_x", "center_y"]
-    fea_MA = ["emd_ani_sal_MA", "labDelta_MA", "area_MA", "center_x_MA", "center_y_MA"]
     # fea = ["labDelta", "area", "center_x", "center_y"]
-    # fea = ["emd_ani_sal", "labDelta", "area"]
+    # fea = ["emd_ani_sal", "labDelta"]
     # fea = ["emd_ani_sal"]
 
-    X_train = test[fea]
+    X_train = balanced_df[fea]
     # X_train = test['emd_ani_gaze']
-    y_train = test['label']
+    y_train = balanced_df['label']
     y_train = y_train.astype('int')
     X_test = test_df[fea]
     # X_test = test_df['emd_ani_gaze']
@@ -106,14 +105,19 @@ for test_user in test_user_list:
     y_pred = []
     for pred_index in range(len(preds)):
         # print(pred_index, np.mean(np.array(preds[pred_index - 5 : pred_index] if pred_index > 4 else preds[: pred_index])))
-        y_pred.append(np.max(np.array(preds[pred_index - 2 : pred_index + 1] if pred_index > 2 else preds[: pred_index + 1])))
-    fpr, tpr, threshold = metrics.roc_curve(y_test, y_pred)
+        y_pred.append(np.mean(np.array(preds[pred_index - 2 : pred_index + 1] if pred_index > 2 else preds[: pred_index + 1])))
+        # temp = np.sum(np.array(preds[pred_index - 4 : pred_index + 1] if pred_index > 1 else preds[: pred_index + 1]))
+        # y_pred.append(1 if temp > 4 else 0)
+    fpr, tpr, threshold = metrics.roc_curve(y_test, preds)
     roc_auc = metrics.auc(fpr, tpr)
     print(roc_auc)
+    # fpr, tpr, threshold = metrics.roc_curve(y_test, y_pred)
+    # roc_auc = metrics.auc(fpr, tpr)
+    # print(roc_auc)
     aucs.append(roc_auc)
 
     plt.plot(fpr, tpr, label = 'AUC = %0.2f' % roc_auc)
-    plt.legend(loc = 'lower right', fontsize="small", bbox_to_anchor=(1.2, 0))
+    # plt.legend(loc = 'lower right', fontsize="small", bbox_to_anchor=(1.2, 0))
     plt.plot([0, 1], [0, 1],'r--')
     plt.xlim([0, 1])
     plt.ylim([0, 1])

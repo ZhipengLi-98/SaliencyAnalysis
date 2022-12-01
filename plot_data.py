@@ -3,7 +3,7 @@ from matplotlib import pyplot as plt
 import os
 import numpy as np
 
-data_path = "./new_data"
+data_path = "./merge"
 feature_path = "./features"
 
 for user in os.listdir(data_path):

@@ -19,24 +19,28 @@ for user in os.listdir(data_path):
         temp_center_x = []
         temp_center_y = []
         data_idx = data_df["index"].to_list()
-        for idx in data_idx:
-            if len(feature_df[feature_df["index"] == idx]["labDelta"].to_list()) == 0:
+        emd_ani_sal = data_df["emd_ani_sal"].to_list()
+        temp_emd_ani_sal = []
+        label = data_df["label"].to_list()
+        for idx in range(len(data_idx)):
+            if len(feature_df[feature_df["index"] == data_idx[idx]]["labDelta"].to_list()) == 0:
                 temp_labDelta.append(0)
                 temp_area.append(0)
                 temp_center_x.append(0)
                 temp_center_y.append(0)
                 # temp_eucDist.append(0)
             else:
-                temp_labDelta.append(float(feature_df[feature_df["index"] == idx]["labDelta"]))
-                temp_area.append(float(feature_df[feature_df["index"] == idx]["area"]))
-                temp_center_x.append(float(feature_df[feature_df["index"] == idx]["center_x"]))
-                temp_center_y.append(float(feature_df[feature_df["index"] == idx]["center_y"]))
+                temp_labDelta.append(float(feature_df[feature_df["index"] == data_idx[idx]]["labDelta"]))
+                temp_area.append(float(feature_df[feature_df["index"] == data_idx[idx]]["area"]))
+                temp_center_x.append(float(feature_df[feature_df["index"] == data_idx[idx]]["center_x"]))
+                temp_center_y.append(float(feature_df[feature_df["index"] == data_idx[idx]]["center_y"]))
                 # temp_eucDist.append(float(feature_df[feature_df["index"] == idx]["eucDist"]))
 
         data_df["labDelta"] = temp_labDelta
         data_df["area"] = temp_area
         data_df["center_x"] = temp_center_x
         data_df["center_y"] = temp_center_x
+        data_df["emd_ani_sal"] = temp_emd_ani_sal
         # data_df["eucDist"] = temp_eucDist
 
         fea = ["emd_ani_sal", "labDelta", "area", "center_x", "center_y"]
@@ -48,5 +52,5 @@ for user in os.listdir(data_path):
         path = os.path.join(merge_path, user)
         if not os.path.exists(path):
             os.makedirs(path)
-        data_df.to_csv(os.path.join(path, condition) + ".csv")
+        data_df.to_csv(os.path.join(path, condition))
     # break
