@@ -7,6 +7,7 @@ from random import random
 import argparse
 from sklearn.model_selection import train_test_split
 import tensorflow as tf
+from tensorflow.keras.metrics import AUC
 
 from keras.models import Sequential
 from keras.layers import LSTM
@@ -36,7 +37,8 @@ trials = 1
 Xs = {}
 ys = {}
 # fea = ["emd_ani_sal", "labDelta", "area", "center_x", "center_y"]
-fea = ["emd_ani_sal", "labDelta", "area"]
+# fea = ["emd_ani_sal", "labDelta", "area"]
+fea = ["emd_ani_sal", "labDelta"]
 # fea = ["emd_ani_sal"]
 
 for user in os.listdir(data_path):
@@ -157,6 +159,7 @@ def test_trials(test_user, trial_number):
 
 if args.command == "train":
     fig = plt.figure(figsize=(12, 6))
+    aucs = []
     for test_user in os.listdir(data_path):
         # if os.path.isfile("./saved_model/{}_{}_{}.h5".format(test_user, args.activation, args.initial)):
         #     continue
@@ -212,19 +215,20 @@ if args.command == "train":
         model = Sequential()
         # model.add(Conv1D(filters=64, kernel_size=5, padding='same', activation=args.activation))
         # model.add(MaxPooling1D(pool_size=4))
-        model.add(SimpleRNN(128, return_sequences=True, input_shape=(X_train.shape[1], X_train.shape[2])))
+        model.add(LSTM(64, return_sequences=True, input_shape=(X_train.shape[1], X_train.shape[2])))
         model.add(Dropout(0.2))
-        model.add(SimpleRNN(32))
+        model.add(LSTM(32))
         model.add(Dropout(0.2))
         model.add(Dense(1))
         model.compile(optimizer='adam', loss='binary_crossentropy', metrics=["accuracy"])
-        model.fit(X_train, y_train, epochs=20, batch_size=64, validation_data=(X_val, y_val))
-
+        model.fit(X_train, y_train, epochs=10, batch_size=64, validation_data=(X_val, y_val))
 
         y_pred = model.predict(X_test).ravel()
         y_test = y_test.flatten()
         fpr, tpr, threshold = metrics.roc_curve(y_test, y_pred)
         roc_auc = metrics.auc(fpr, tpr)
+
+        aucs.append(roc_auc)
 
         print(test_user, roc_auc)
 
@@ -236,15 +240,16 @@ if args.command == "train":
         # del model
         
         plt.plot(fpr, tpr, label = '{} AUC = %0.2f'.format(test_user) % roc_auc)
-        plt.legend(loc = 'lower right', fontsize="small", bbox_to_anchor=(1.2, 0))
+        # plt.legend(loc = 'lower right', fontsize="small", bbox_to_anchor=(1.2, 0))
         plt.plot([0, 1], [0, 1],'r--')
         plt.xlim([0, 1])
         plt.ylim([0, 1])
         plt.ylabel('True Positive Rate')
         plt.xlabel('False Positive Rate')
         # plt.show()
+        fig.suptitle("Average AUC = %0.2f" % np.mean(np.array(aucs)), fontsize=16)
         fig.tight_layout()
-        plt.savefig("./lstm_results/leave_{}_trials_out_balanced_{}_{}_new_data_merge_less_feature_test_val.jpg".format(trials, args.activation, args.initial))
+        plt.savefig("./lstm_results/leave_{}_trials_out_balanced_{}_{}_new_data_merge_{}.jpg".format(trials, args.activation, args.initial, n_frames))
         # plt.show()
 
 if args.command == "test":

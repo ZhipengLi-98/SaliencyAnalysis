@@ -16,10 +16,10 @@ data_per_user = 12000
 
 fig = plt.figure(figsize=(12, 6))
 
-test_user_num = 3
+test_user_num = 1
 
 test_user_list = [[i] for i in os.listdir(data_path)]
-test_user_list = [random.sample(os.listdir(data_path), test_user_num) for i in range(100)]
+# test_user_list = [random.sample(os.listdir(data_path), test_user_num) for i in range(100)]
 
 aucs = []
 for test_user in test_user_list:
@@ -54,9 +54,9 @@ for test_user in test_user_list:
 
     # test_df = pd.concat([class_0_over, class_1], axis=0)
 
-    fea = ["emd_ani_sal", "labDelta", "area", "center_x", "center_y"]
+    # fea = ["emd_ani_sal", "labDelta", "area", "center_x", "center_y"]
     # fea = ["labDelta", "area", "center_x", "center_y"]
-    # fea = ["emd_ani_sal", "labDelta"]
+    fea = ["emd_ani_sal", "labDelta", "area"]
     # fea = ["emd_ani_sal"]
 
     X_train = balanced_df[fea]
@@ -126,8 +126,5 @@ for test_user in test_user_list:
     fig.suptitle("Average AUC = %0.2f" % np.mean(np.array(aucs)), fontsize=16)
     fig.tight_layout()
     # plt.show()
-    plt.savefig("./adaboost_smooth_pred_24_users_leave_{}_user_out.jpg".format(test_user_num))
+    plt.savefig("./adaboost_smooth_pred_24_users_leave_{}_user_out_temp.jpg".format(test_user_num))
     # break
-fig.suptitle("Average AUC = %0.2f" % np.mean(np.array(aucs)), fontsize=16)
-fig.tight_layout()
-plt.savefig("./adaboost_smooth_pred_24_users_leave_{}_user_out.jpg".format(test_user_num))

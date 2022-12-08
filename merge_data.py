@@ -40,7 +40,7 @@ for user in os.listdir(data_path):
         data_df["area"] = temp_area
         data_df["center_x"] = temp_center_x
         data_df["center_y"] = temp_center_x
-        data_df["emd_ani_sal"] = temp_emd_ani_sal
+        # data_df["emd_ani_sal"] = temp_emd_ani_sal
         # data_df["eucDist"] = temp_eucDist
 
         fea = ["emd_ani_sal", "labDelta", "area", "center_x", "center_y"]
