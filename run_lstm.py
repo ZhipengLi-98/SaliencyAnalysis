@@ -6,9 +6,11 @@ from matplotlib import pyplot as plt
 from random import random
 import argparse
 from sklearn.model_selection import train_test_split
+import random
 import tensorflow as tf
 from tensorflow.keras.metrics import AUC
 
+import keras
 from keras.models import Sequential
 from keras.layers import LSTM
 from keras.layers import SimpleRNN
@@ -30,12 +32,19 @@ if args.device == "cpu":
 
 data_path = "./merge"
 
-n_frames = 10
+n_frames = 5
 data_per_condition = 1200
 trials = 1
 
+test_user_num = 18
+
+test_user_list = [[i] for i in os.listdir(data_path)]
+test_user_list = [random.sample(os.listdir(data_path), test_user_num) for i in range(24)]
+
 Xs = {}
 ys = {}
+rXs = {}
+rys = {}
 # fea = ["emd_ani_sal", "labDelta", "area", "center_x", "center_y"]
 # fea = ["emd_ani_sal", "labDelta", "area"]
 fea = ["emd_ani_sal", "labDelta"]
@@ -66,25 +75,25 @@ for user in os.listdir(data_path):
                 temp_y.append(y[i])
                 t_x.append(X[i - n_frames: i])
                 t_y.append(y[i])
-        # df = pd.DataFrame({"img": temp_x, "label": temp_y})
-        # class_0 = df[df['label'] == 0]
-        # class_1 = df[df['label'] == 1]
-        # class_count_0, class_count_1 = df['label'].value_counts()
-        # class_0_resample = class_0.sample(data_per_condition, replace=True)
-        # class_1_resample = class_1.sample(data_per_condition, replace=True)
-        # temp.append(class_0_resample)
-        # temp.append(class_1_resample)
+        df = pd.DataFrame({"img": temp_x, "label": temp_y})
+        class_0 = df[df['label'] == 0]
+        class_1 = df[df['label'] == 1]
+        class_count_0, class_count_1 = df['label'].value_counts()
+        class_0_resample = class_0.sample(data_per_condition, replace=True)
+        class_1_resample = class_1.sample(data_per_condition, replace=True)
+        temp.append(class_0_resample)
+        temp.append(class_1_resample)
 
-    df = pd.DataFrame({"img": t_x, "label": t_y})
-    class_0 = df[df['label'] == 0]
-    class_1 = df[df['label'] == 1]
-    class_count_0, class_count_1 = df['label'].value_counts()
-    class_0_resample = class_0.sample(data_per_condition * 12, replace=True)
-    class_1_resample = class_1.sample(data_per_condition * 12, replace=True)
+    # df = pd.DataFrame({"img": t_x, "label": t_y})
+    # class_0 = df[df['label'] == 0]
+    # class_1 = df[df['label'] == 1]
+    # class_count_0, class_count_1 = df['label'].value_counts()
+    # class_0_resample = class_0.sample(data_per_condition * 12, replace=True)
+    # class_1_resample = class_1.sample(data_per_condition * 12, replace=True)
 
-    test = pd.concat([class_0_resample, class_1_resample], axis=0)
+    # test = pd.concat([class_0_resample, class_1_resample], axis=0)
     
-    # test = pd.concat(temp, axis=0)
+    test = pd.concat(temp, axis=0)
 
     X = test['img'].tolist()
     y = test['label'].tolist()
@@ -95,6 +104,15 @@ for user in os.listdir(data_path):
     Xs[user] = X
     ys[user] = y
 
+    # X = df['img'].tolist()
+    # y = df['label'].tolist()
+
+    # X = np.array(X)
+    # y = np.array(y)
+
+    # rXs[user] = X
+    # rys[user] = y
+
 def test_trials(test_user, trial_number):
     temp_x = []
     temp_y = []
@@ -104,50 +122,53 @@ def test_trials(test_user, trial_number):
     trial_cnt = 0
     last_y = 0
     train_set = []
-    for condition in os.listdir(os.path.join(data_path, test_user)):
-        temp_x_train = []
-        temp_y_train = []
-        trial_cnt = 0
-        last_y = 0
-        flag = False if trial_number == 0 else True
-        # print(user, condition)
-        df = pd.read_csv(os.path.join(data_path, test_user, condition))
-        # df = pd.read_csv("./data/{}/data_{}_{}_{}.csv".format(user, condition.split("_")[1], condition.split("_")[2], user))
-        idx = df["index"].tolist()
-        X = df[fea].values
-        # X = df["emd_ani_sal"].tolist()
-        # X = df["emd_ani_gaze"].tolist()
-        y = df["label"].tolist()
-
-        if len(X) == 0:
-            print(test_user, condition)
+    for user in os.listdir(data_path):
+        if user not in test_user:
             continue
+        for condition in os.listdir(os.path.join(data_path, user)):
+            temp_x_train = []
+            temp_y_train = []
+            trial_cnt = 0
+            last_y = 0
+            flag = False if trial_number == 0 else True
+            # print(user, condition)
+            df = pd.read_csv(os.path.join(data_path, user, condition))
+            # df = pd.read_csv("./data/{}/data_{}_{}_{}.csv".format(user, condition.split("_")[1], condition.split("_")[2], user))
+            idx = df["index"].tolist()
+            X = df[fea].values
+            # X = df["emd_ani_sal"].tolist()
+            # X = df["emd_ani_gaze"].tolist()
+            y = df["label"].tolist()
 
-        for i in range(n_frames, len(idx)):
-            if idx[i] - idx[i - n_frames] == n_frames:
-                if flag:
-                    temp_x_train.append(X[i - n_frames: i])
-                    temp_y_train.append(y[i])
-                else:
-                    temp_x.append(X[i - n_frames: i])
-                    temp_y.append(y[i])
-                if y[i] == 1 and last_y == 0:
-                    trial_cnt += 1
-                if trial_cnt == trial_number:
-                    flag = False
-                last_y = y[i]
-        
-        if len(temp_x_train) > 0:
-            df = pd.DataFrame({"img": temp_x_train, "label": temp_y_train})
-            class_0 = df[df['label'] == 0]
-            class_1 = df[df['label'] == 1]
-            class_count_0, class_count_1 = df['label'].value_counts()
+            if len(X) == 0:
+                print(user, condition)
+                continue
 
-            if len(class_0['img'].to_list()) * len(class_1['img'].to_list()) > 0:
-                class_0_resample = class_0.sample(int(data_per_condition / 1), replace=True)
-                class_1_resample = class_1.sample(int(data_per_condition / 1), replace=True)
-                train_set.append(class_0_resample)
-                train_set.append(class_1_resample)
+            for i in range(n_frames, len(idx)):
+                if idx[i] - idx[i - n_frames] == n_frames:
+                    if flag:
+                        temp_x_train.append(X[i - n_frames: i])
+                        temp_y_train.append(y[i])
+                    else:
+                        temp_x.append(X[i - n_frames: i])
+                        temp_y.append(y[i])
+                    if y[i] == 1 and last_y == 0:
+                        trial_cnt += 1
+                    if trial_cnt == trial_number:
+                        flag = False
+                    last_y = y[i]
+            
+            if len(temp_x_train) > 0:
+                df = pd.DataFrame({"img": temp_x_train, "label": temp_y_train})
+                class_0 = df[df['label'] == 0]
+                class_1 = df[df['label'] == 1]
+                class_count_0, class_count_1 = df['label'].value_counts()
+
+                if len(class_0['img'].to_list()) * len(class_1['img'].to_list()) > 0:
+                    class_0_resample = class_0.sample(int(data_per_condition / 1), replace=True)
+                    class_1_resample = class_1.sample(int(data_per_condition / 1), replace=True)
+                    train_set.append(class_0_resample)
+                    train_set.append(class_1_resample)
     
     if len(train_set) > 0:
         test = pd.concat(train_set, axis=0)
@@ -160,7 +181,7 @@ def test_trials(test_user, trial_number):
 if args.command == "train":
     fig = plt.figure(figsize=(12, 6))
     aucs = []
-    for test_user in os.listdir(data_path):
+    for test_user in test_user_list:
         # if os.path.isfile("./saved_model/{}_{}_{}.h5".format(test_user, args.activation, args.initial)):
         #     continue
         print(test_user)
@@ -169,7 +190,13 @@ if args.command == "train":
         X_test = []
         y_test = []
         for user in os.listdir(data_path):
-            if user != test_user and user in Xs.keys():
+            if user in test_user and user in Xs.keys():
+                pass
+                # X_test.extend(rXs[user])
+                # y_test.extend(rys[user])
+                # X_train.extend(Xs[user])
+                # y_train.extend(ys[user])
+            elif user in Xs.keys():
                 X_train.extend(Xs[user])
                 y_train.extend(ys[user])
         
@@ -183,8 +210,8 @@ if args.command == "train":
             X_train_temp, y_train_temp, X_test, y_test = test_trials(test_user, 0)
         elif args.initial == "add":
             X_train_temp, y_train_temp, X_test, y_test = test_trials(test_user, trials)
-        # X_train.extend(X_train_temp)
-        # y_train.extend(y_train_temp)
+        # X_train.extend(X_test)
+        # y_train.extend(y_test)
         # X_test = []
         # y_test = []
         # for i in range(len(Xs[test_user])):
@@ -197,15 +224,15 @@ if args.command == "train":
         
         X_train = np.array(X_train).reshape(-1, n_frames, len(fea))
         y_train = np.array(y_train).reshape(-1, 1, 1)
-        X_train_temp = np.array(X_train_temp).reshape(-1, n_frames, len(fea))
-        y_train_temp = np.array(y_train_temp).reshape(-1, 1, 1)
+        # X_train_temp = np.array(X_train_temp).reshape(-1, n_frames, len(fea))
+        # y_train_temp = np.array(y_train_temp).reshape(-1, 1, 1)
         X_test = np.array(X_test).reshape(-1, n_frames, len(fea))
         y_test = np.array(y_test).reshape(-1, 1, 1)
 
         print(X_train.shape)
         print(y_train.shape)
-        print(X_train_temp.shape)
-        print(y_train_temp.shape)
+        # print(X_train_temp.shape)
+        # print(y_train_temp.shape)
         print(X_test.shape)
         print(y_test.shape)
 
@@ -213,15 +240,17 @@ if args.command == "train":
         X_train, X_val, y_train, y_val = train_test_split(X_train, y_train, test_size=0.2)
 
         model = Sequential()
-        # model.add(Conv1D(filters=64, kernel_size=5, padding='same', activation=args.activation))
-        # model.add(MaxPooling1D(pool_size=4))
-        model.add(LSTM(64, return_sequences=True, input_shape=(X_train.shape[1], X_train.shape[2])))
+        model.add(Conv1D(filters=64, kernel_size=5, padding='same', activation=args.activation))
+        model.add(MaxPooling1D(pool_size=5))
+        model.add(LSTM(128, return_sequences=True, input_shape=(X_train.shape[1], X_train.shape[2])))
         model.add(Dropout(0.2))
         model.add(LSTM(32))
         model.add(Dropout(0.2))
-        model.add(Dense(1))
-        model.compile(optimizer='adam', loss='binary_crossentropy', metrics=["accuracy"])
-        model.fit(X_train, y_train, epochs=10, batch_size=64, validation_data=(X_val, y_val))
+        model.add(Dense(1, activation="sigmoid"))
+        # model.compile(optimizer='adam', loss='mean_squared_error', metrics=["accuracy", tf.keras.metrics.AUC()]) 
+        opt = keras.optimizers.Adam(1e-4)
+        model.compile(optimizer=opt, loss='binary_crossentropy', metrics=["accuracy", "AUC"])
+        model.fit(X_train, y_train, epochs=100, batch_size=128, validation_data=(X_val, y_val))
 
         y_pred = model.predict(X_test).ravel()
         y_test = y_test.flatten()
@@ -249,7 +278,7 @@ if args.command == "train":
         # plt.show()
         fig.suptitle("Average AUC = %0.2f" % np.mean(np.array(aucs)), fontsize=16)
         fig.tight_layout()
-        plt.savefig("./lstm_results/leave_{}_trials_out_balanced_{}_{}_new_data_merge_{}.jpg".format(trials, args.activation, args.initial, n_frames))
+        plt.savefig("./lstm_results/leave_{}_users_out_balanced_{}_{}_new_data_merge_{}.jpg".format(test_user_num, args.activation, args.initial, n_frames))
         # plt.show()
 
 if args.command == "test":
