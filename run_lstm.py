@@ -36,10 +36,10 @@ n_frames = 5
 data_per_condition = 1200
 trials = 1
 
-test_user_num = 18
+test_user_num = 0
 
 test_user_list = [[i] for i in os.listdir(data_path)]
-test_user_list = [random.sample(os.listdir(data_path), test_user_num) for i in range(24)]
+# test_user_list = [random.sample(os.listdir(data_path), test_user_num) for i in range(24)]
 
 Xs = {}
 ys = {}
@@ -194,8 +194,8 @@ if args.command == "train":
                 pass
                 # X_test.extend(rXs[user])
                 # y_test.extend(rys[user])
-                # X_train.extend(Xs[user])
-                # y_train.extend(ys[user])
+                X_train.extend(Xs[user])
+                y_train.extend(ys[user])
             elif user in Xs.keys():
                 X_train.extend(Xs[user])
                 y_train.extend(ys[user])
@@ -250,7 +250,7 @@ if args.command == "train":
         # model.compile(optimizer='adam', loss='mean_squared_error', metrics=["accuracy", tf.keras.metrics.AUC()]) 
         opt = keras.optimizers.Adam(1e-4)
         model.compile(optimizer=opt, loss='binary_crossentropy', metrics=["accuracy", "AUC"])
-        model.fit(X_train, y_train, epochs=100, batch_size=128, validation_data=(X_val, y_val))
+        model.fit(X_train, y_train, epochs=100, batch_size=64, validation_data=(X_val, y_val))
 
         y_pred = model.predict(X_test).ravel()
         y_test = y_test.flatten()
@@ -264,6 +264,9 @@ if args.command == "train":
         print("Evaluate on test data")
         results = model.evaluate(X_test, y_test, batch_size=128)
         print("test loss, test acc:", results)
+
+        model.save("./lstm_{}_cov.h5".format(n_frames))
+        exit()
 
         # model.save("./saved_model/{}_{}_{}.h5".format(test_user, args.activation, args.initial))
         # del model
