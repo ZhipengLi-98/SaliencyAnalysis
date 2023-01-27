@@ -240,8 +240,8 @@ if args.command == "train":
         X_train, X_val, y_train, y_val = train_test_split(X_train, y_train, test_size=0.2)
 
         model = Sequential()
-        model.add(Conv1D(filters=64, kernel_size=5, padding='same', activation=args.activation))
-        model.add(MaxPooling1D(pool_size=5))
+        # model.add(Conv1D(filters=64, kernel_size=5, padding='same', activation=args.activation))
+        # model.add(MaxPooling1D(pool_size=5))
         model.add(LSTM(128, return_sequences=True, input_shape=(X_train.shape[1], X_train.shape[2])))
         model.add(Dropout(0.2))
         model.add(LSTM(32))
@@ -265,7 +265,7 @@ if args.command == "train":
         results = model.evaluate(X_test, y_test, batch_size=128)
         print("test loss, test acc:", results)
 
-        model.save("./lstm_{}_cov.h5".format(n_frames))
+        model.save("./lstm_{}_sigmoid.h5".format(n_frames))
         exit()
 
         # model.save("./saved_model/{}_{}_{}.h5".format(test_user, args.activation, args.initial))

@@ -44,6 +44,15 @@ for test_user in test_user_list:
     for j in tqdm(range(len(emd_ass))):
         y_pred.append(1 - emd_ass[j] / (max_emd_ass - min_emd_ass))
     fpr, tpr, threshold = metrics.roc_curve(labels, y_pred)
+
+    gmean = np.sqrt(tpr * (1 - fpr))
+    # Find the optimal threshold
+    index = np.argmax(gmean)
+    thresholdOpt = round(threshold[index], ndigits = 4)
+    gmeanOpt = round(gmean[index], ndigits = 4)
+    fprOpt = round(fpr[index], ndigits = 4)
+    tprOpt = round(tpr[index], ndigits = 4)
+    print('Best Threshold: {} with G-Mean: {}'.format(thresholdOpt, gmeanOpt))
     roc_auc = metrics.auc(fpr, tpr)
     
     aucs.append(roc_auc)
