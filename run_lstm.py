@@ -9,6 +9,7 @@ from sklearn.model_selection import train_test_split
 import random
 import tensorflow as tf
 from tensorflow.keras.metrics import AUC
+import pickle
 
 import keras
 from keras.models import Sequential
@@ -38,8 +39,10 @@ trials = 1
 
 test_user_num = 12
 
-save_files = "./{}_lstm_results.txt".format(12)
-fout = open(save_files, "w")
+save_files = "./{}_ada_results.pickle".format(1)
+tprs = []
+fprs = []
+fout = open(save_files, "wb")
 # test_user_list = [[i] for i in os.listdir(data_path)]
 test_user_list = [random.sample(os.listdir(data_path), test_user_num) for i in range(24)]
 
@@ -272,7 +275,8 @@ if args.command == "train":
         results = model.evaluate(X_test, y_test, batch_size=128)
         print("test loss, test acc:", results)
 
-        fout.write("{}\n".format(roc_auc))
+        tprs.append(tpr)
+        fprs.append(fpr)
         continue
 
         # model.save("./lstm_{}_sigmoid.h5".format(n_frames))
@@ -293,7 +297,9 @@ if args.command == "train":
         fig.tight_layout()
         plt.savefig("./lstm_results/leave_{}_users_out_balanced_{}_{}_new_data_merge_{}.jpg".format(test_user_num, args.activation, args.initial, n_frames))
         # plt.show()
+pickle.dump({"fpr": fprs, "tpr": tprs}, fout)
 fout.close()
+
 if args.command == "test":
     fig = plt.figure(figsize=(12, 6))
     for test_user in os.listdir(data_path):
