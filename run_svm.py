@@ -20,6 +20,8 @@ fig = plt.figure(figsize=(12, 6))
 test_user_num = 1
 
 save_files = "./{}_ada_results.pickle".format(1)
+tprs = []
+fprs = []
 fout = open(save_files, "wb")
 test_user_list = [[i] for i in os.listdir(data_path)]
 # test_user_list = [random.sample(os.listdir(data_path), test_user_num) for i in range(100)]
@@ -125,7 +127,8 @@ for test_user in test_user_list:
     # print(roc_auc)
     aucs.append(roc_auc)
 
-    pickle.dump({"fpr": fpr, "tpr": tpr}, fout) 
+    fprs.append(fpr)
+    tprs.append(tpr)
     continue
 
     plt.plot(fpr, tpr, label = 'AUC = %0.2f' % roc_auc)
@@ -140,4 +143,5 @@ for test_user in test_user_list:
     # plt.show()
     plt.savefig("./adaboost_smooth_pred_24_users_leave_{}_user_out_temp.jpg".format(test_user_num))
     # break
+pickle.dump({"fpr": fprs, "tpr": tprs}, fout)
 fout.close()
