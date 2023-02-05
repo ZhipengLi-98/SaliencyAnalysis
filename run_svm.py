@@ -17,14 +17,14 @@ data_per_user = 12000
 
 fig = plt.figure(figsize=(12, 6))
 
-test_user_num = 23
+test_user_num = 1
 
-save_files = "./{}_ada_results.pickle".format(test_user_num)
+save_files = "./{}_ada_results_test.pickle".format(test_user_num)
 tprs = []
 fprs = []
 fout = open(save_files, "wb")
-# test_user_list = [[i] for i in os.listdir(data_path)]
-test_user_list = [random.sample(os.listdir(data_path), test_user_num) for i in range(24)]
+test_user_list = [[i] for i in os.listdir(data_path)]
+# test_user_list = [random.sample(os.listdir(data_path), test_user_num) for i in range(24)]
 
 aucs = []
 for test_user in test_user_list:
@@ -52,10 +52,10 @@ for test_user in test_user_list:
     class_1 = df[df['label'] == 1]
     class_count_0, class_count_1 = df['label'].value_counts()
     class_0_over = class_0.sample(data_per_user * 10, replace=True)
-    class_1_over = class_1.sample(data_per_user * 10, replace=True)
+    class_1_over = class_1.sample(class_count_0, replace=True)
 
     # test = pd.concat([class_0, class_1_over], axis=0)
-    balanced_df = pd.concat([class_0_over, class_1_over], axis=0)
+    balanced_df = pd.concat([class_0, class_1_over], axis=0)
     
     class_0 = test_df[test_df['label'] == 0]
     class_1 = test_df[test_df['label'] == 1]
