@@ -53,6 +53,7 @@ for test_user in test_user_list:
     fprOpt = round(fpr[index], ndigits = 4)
     tprOpt = round(tpr[index], ndigits = 4)
     print('Best Threshold: {} with G-Mean: {}'.format(thresholdOpt, gmeanOpt))
+    print((1 - thresholdOpt) * (max_emd_ass - min_emd_ass))
     roc_auc = metrics.auc(fpr, tpr)
     
     aucs.append(roc_auc)

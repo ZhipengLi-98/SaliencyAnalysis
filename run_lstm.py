@@ -36,10 +36,12 @@ n_frames = 5
 data_per_condition = 1200
 trials = 1
 
-test_user_num = 0
+test_user_num = 12
 
-test_user_list = [[i] for i in os.listdir(data_path)]
-# test_user_list = [random.sample(os.listdir(data_path), test_user_num) for i in range(24)]
+save_files = "./{}_lstm_results.txt".format(12)
+fout = open(save_files, "w")
+# test_user_list = [[i] for i in os.listdir(data_path)]
+test_user_list = [random.sample(os.listdir(data_path), test_user_num) for i in range(24)]
 
 Xs = {}
 ys = {}
@@ -57,8 +59,10 @@ for user in os.listdir(data_path):
     for condition in os.listdir(os.path.join(data_path, user)):
         temp_x = []
         temp_y = []
-        df = pd.read_csv(os.path.join(data_path, user, condition))
-
+        try:
+            df = pd.read_csv(os.path.join(data_path, user, condition))
+        except:
+            continue
         # df = pd.read_csv("./data/{}/data_{}_{}_{}.csv".format(user, condition.split("_")[1], condition.split("_")[2], user))
         idx = df["index"].tolist()
         X = df[fea].values
@@ -132,7 +136,10 @@ def test_trials(test_user, trial_number):
             last_y = 0
             flag = False if trial_number == 0 else True
             # print(user, condition)
-            df = pd.read_csv(os.path.join(data_path, user, condition))
+            try:
+                df = pd.read_csv(os.path.join(data_path, user, condition))
+            except:
+                continue
             # df = pd.read_csv("./data/{}/data_{}_{}_{}.csv".format(user, condition.split("_")[1], condition.split("_")[2], user))
             idx = df["index"].tolist()
             X = df[fea].values
@@ -240,8 +247,8 @@ if args.command == "train":
         X_train, X_val, y_train, y_val = train_test_split(X_train, y_train, test_size=0.2)
 
         model = Sequential()
-        # model.add(Conv1D(filters=64, kernel_size=5, padding='same', activation=args.activation))
-        # model.add(MaxPooling1D(pool_size=5))
+        model.add(Conv1D(filters=64, kernel_size=5, padding='same', activation=args.activation))
+        model.add(MaxPooling1D(pool_size=5))
         model.add(LSTM(128, return_sequences=True, input_shape=(X_train.shape[1], X_train.shape[2])))
         model.add(Dropout(0.2))
         model.add(LSTM(32))
@@ -265,8 +272,11 @@ if args.command == "train":
         results = model.evaluate(X_test, y_test, batch_size=128)
         print("test loss, test acc:", results)
 
-        model.save("./lstm_{}_sigmoid.h5".format(n_frames))
-        exit()
+        fout.write("{}\n".format(roc_auc))
+        continue
+
+        # model.save("./lstm_{}_sigmoid.h5".format(n_frames))
+        # exit()
 
         # model.save("./saved_model/{}_{}_{}.h5".format(test_user, args.activation, args.initial))
         # del model
@@ -283,7 +293,7 @@ if args.command == "train":
         fig.tight_layout()
         plt.savefig("./lstm_results/leave_{}_users_out_balanced_{}_{}_new_data_merge_{}.jpg".format(test_user_num, args.activation, args.initial, n_frames))
         # plt.show()
-
+fout.close()
 if args.command == "test":
     fig = plt.figure(figsize=(12, 6))
     for test_user in os.listdir(data_path):
