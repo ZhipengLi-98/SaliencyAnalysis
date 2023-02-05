@@ -125,9 +125,7 @@ for test_user in test_user_list:
     # print(roc_auc)
     aucs.append(roc_auc)
 
-    pickle.dump({"fpr": fpr, "tpr": tpr}, fout)
-    break
-    
+    pickle.dump({"fpr": fpr, "tpr": tpr}, fout) 
     continue
 
     plt.plot(fpr, tpr, label = 'AUC = %0.2f' % roc_auc)
