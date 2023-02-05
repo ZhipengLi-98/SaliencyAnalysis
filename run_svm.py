@@ -10,6 +10,7 @@ from sklearn.ensemble import AdaBoostClassifier, BaggingClassifier, GradientBoos
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.ensemble import GradientBoostingClassifier
 import random
+import pickle
 
 data_path = "./merge"
 data_per_user = 12000
@@ -18,8 +19,8 @@ fig = plt.figure(figsize=(12, 6))
 
 test_user_num = 1
 
-save_files = "./{}_ada_results.txt".format(1)
-fout = open(save_files, "w")
+save_files = "./{}_ada_results.pickle".format(1)
+fout = open(save_files, "wb")
 test_user_list = [[i] for i in os.listdir(data_path)]
 # test_user_list = [random.sample(os.listdir(data_path), test_user_num) for i in range(100)]
 
@@ -124,7 +125,9 @@ for test_user in test_user_list:
     # print(roc_auc)
     aucs.append(roc_auc)
 
-    fout.write("{}\n".format(roc_auc))
+    pickle.dump({"fpr": fpr, "tpr": tpr}, fout)
+    break
+    
     continue
 
     plt.plot(fpr, tpr, label = 'AUC = %0.2f' % roc_auc)
