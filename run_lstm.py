@@ -37,14 +37,14 @@ n_frames = 5
 data_per_condition = 1200
 trials = 1
 
-test_user_num = 12
+test_user_num = 1
 
-save_files = "./{}_ada_results.pickle".format(1)
+save_files = "./{}_ada_results.pickle".format(test_user_num)
 tprs = []
 fprs = []
 fout = open(save_files, "wb")
-# test_user_list = [[i] for i in os.listdir(data_path)]
-test_user_list = [random.sample(os.listdir(data_path), test_user_num) for i in range(24)]
+test_user_list = [[i] for i in os.listdir(data_path)]
+# test_user_list = [random.sample(os.listdir(data_path), test_user_num) for i in range(24)]
 
 Xs = {}
 ys = {}
@@ -87,8 +87,8 @@ for user in os.listdir(data_path):
         class_1 = df[df['label'] == 1]
         class_count_0, class_count_1 = df['label'].value_counts()
         class_0_resample = class_0.sample(data_per_condition, replace=True)
-        class_1_resample = class_1.sample(data_per_condition, replace=True)
-        temp.append(class_0_resample)
+        class_1_resample = class_1.sample(class_count_0, replace=True)
+        temp.append(class_0)
         temp.append(class_1_resample)
 
     # df = pd.DataFrame({"img": t_x, "label": t_y})
