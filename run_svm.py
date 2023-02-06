@@ -17,7 +17,7 @@ data_per_user = 12000
 
 fig = plt.figure(figsize=(12, 6))
 
-test_user_num = 12
+test_user_num = 18
 
 save_files = "./{}_ada_results_test.pickle".format(test_user_num)
 tprs = []

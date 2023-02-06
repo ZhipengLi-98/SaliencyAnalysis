@@ -260,7 +260,7 @@ if args.command == "train":
         # model.compile(optimizer='adam', loss='mean_squared_error', metrics=["accuracy", tf.keras.metrics.AUC()]) 
         opt = keras.optimizers.Adam(1e-4)
         model.compile(optimizer=opt, loss='binary_crossentropy', metrics=["accuracy", "AUC"])
-        model.fit(X_train, y_train, epochs=100, batch_size=64, validation_data=(X_val, y_val))
+        model.fit(X_train, y_train, epochs=50, batch_size=128, validation_data=(X_val, y_val))
 
         y_pred = model.predict(X_test).ravel()
         y_test = y_test.flatten()
