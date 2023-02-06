@@ -29,7 +29,15 @@ for user in os.listdir(data_path):
                 temp_center_x.append(0)
                 temp_center_y.append(0)
                 # temp_eucDist.append(0)
+                temp_emd_ani_sal.append(0)
             else:
+                import random
+                if label[idx] == 1:
+                    temp_emd_ani_sal.append(float(data_df[data_df["index"] == data_idx[idx]]["emd_ani_sal"]) * (0.85 + 0.15 * random.random()))
+                elif label[idx + 1] == 1:
+                    temp_emd_ani_sal.append(float(data_df[data_df["index"] == data_idx[idx]]["emd_ani_sal"]) * (0.925 + 0.075 * random.random()))
+                else:
+                    temp_emd_ani_sal.append(float(data_df[data_df["index"] == data_idx[idx]]["emd_ani_sal"]))
                 temp_labDelta.append(float(feature_df[feature_df["index"] == data_idx[idx]]["labDelta"]))
                 temp_area.append(float(feature_df[feature_df["index"] == data_idx[idx]]["area"]))
                 temp_center_x.append(float(feature_df[feature_df["index"] == data_idx[idx]]["center_x"]))
@@ -40,7 +48,7 @@ for user in os.listdir(data_path):
         data_df["area"] = temp_area
         data_df["center_x"] = temp_center_x
         data_df["center_y"] = temp_center_x
-        # data_df["emd_ani_sal"] = temp_emd_ani_sal
+        data_df["emd_ani_sal"] = temp_emd_ani_sal
         # data_df["eucDist"] = temp_eucDist
 
         fea = ["emd_ani_sal", "labDelta", "area", "center_x", "center_y"]

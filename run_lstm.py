@@ -37,14 +37,14 @@ n_frames = 5
 data_per_condition = 1200
 trials = 1
 
-test_user_num = 1
+test_user_num = 12
 
 save_files = "./{}_ada_results.pickle".format(test_user_num)
 tprs = []
 fprs = []
 fout = open(save_files, "wb")
-test_user_list = [[i] for i in os.listdir(data_path)]
-# test_user_list = [random.sample(os.listdir(data_path), test_user_num) for i in range(24)]
+# test_user_list = [[i] for i in os.listdir(data_path)]
+test_user_list = [random.sample(os.listdir(data_path), test_user_num) for i in range(24)]
 
 Xs = {}
 ys = {}
@@ -176,8 +176,8 @@ def test_trials(test_user, trial_number):
 
                 if len(class_0['img'].to_list()) * len(class_1['img'].to_list()) > 0:
                     class_0_resample = class_0.sample(int(data_per_condition / 1), replace=True)
-                    class_1_resample = class_1.sample(int(data_per_condition / 1), replace=True)
-                    train_set.append(class_0_resample)
+                    class_1_resample = class_1.sample(class_count_0, replace=True)
+                    train_set.append(class_0)
                     train_set.append(class_1_resample)
     
     if len(train_set) > 0:
