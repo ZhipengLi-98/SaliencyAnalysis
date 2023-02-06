@@ -17,14 +17,14 @@ data_per_user = 12000
 
 fig = plt.figure(figsize=(12, 6))
 
-test_user_num = 12
+test_user_num = 0
 
 save_files = "./{}_ada_results.pickle".format(test_user_num)
 tprs = []
 fprs = []
 fout = open(save_files, "wb")
-# test_user_list = [[i] for i in os.listdir(data_path)]
-test_user_list = [random.sample(os.listdir(data_path), test_user_num) for i in range(24)]
+test_user_list = [[i] for i in os.listdir(data_path)]
+# test_user_list = [random.sample(os.listdir(data_path), test_user_num) for i in range(24)]
 
 aucs = []
 for test_user in test_user_list:
@@ -36,6 +36,7 @@ for test_user in test_user_list:
             for condition in os.listdir(os.path.join(data_path, user)):
                 try:
                     test_files.append(pd.read_csv(os.path.join(data_path, user, condition)))
+                    files.append(pd.read_csv(os.path.join(data_path, user, condition)))
                 except:
                     continue
         else:
