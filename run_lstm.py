@@ -37,14 +37,14 @@ n_frames = 5
 data_per_condition = 1200
 trials = 1
 
-test_user_num = 12
+test_user_num = 0
 
-save_files = "./{}_ada_results.pickle".format(test_user_num)
+save_files = "./{}_lstm_results.pickle".format(test_user_num)
 tprs = []
 fprs = []
 fout = open(save_files, "wb")
-# test_user_list = [[i] for i in os.listdir(data_path)]
-test_user_list = [random.sample(os.listdir(data_path), test_user_num) for i in range(24)]
+test_user_list = [[i] for i in os.listdir(data_path)]
+# test_user_list = [random.sample(os.listdir(data_path), test_user_num) for i in range(24)]
 
 Xs = {}
 ys = {}
@@ -201,7 +201,7 @@ if args.command == "train":
         y_test = []
         for user in os.listdir(data_path):
             if user in test_user and user in Xs.keys():
-                pass
+                # pass
                 # X_test.extend(rXs[user])
                 # y_test.extend(rys[user])
                 X_train.extend(Xs[user])
