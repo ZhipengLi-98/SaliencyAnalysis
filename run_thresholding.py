@@ -5,15 +5,19 @@ from matplotlib import pyplot as plt
 import numpy as np
 from tqdm import tqdm
 import random
+import pickle
 
 data_path = "./merge"
 
 fig = plt.figure(figsize=(12, 6))
 
 test_user_num = 1
-
+save_files = "./{}_threshold_results.pickle".format(test_user_num)
+tprs = []
+fprs = []
+fout = open(save_files, "wb")
 test_user_list = [[i] for i in os.listdir(data_path)]
-# test_user_list = [random.sample(os.listdir(data_path), test_user_num) for i in range(100)]
+# test_user_list = [random.sample(os.listdir(data_path), test_user_num) for i in range(24)]
 
 aucs = []
 for test_user in test_user_list:
@@ -23,10 +27,16 @@ for test_user in test_user_list:
     for user in os.listdir(data_path):
         if user in test_user:
             for condition in os.listdir(os.path.join(data_path, user)):
-                test_files.append(pd.read_csv(os.path.join(data_path, user, condition)))
+                try:
+                    test_files.append(pd.read_csv(os.path.join(data_path, user, condition)))
+                except:
+                    continue
         else:
             for condition in os.listdir(os.path.join(data_path, user)):
-                files.append(pd.read_csv(os.path.join(data_path, user, condition)))
+                try:
+                    files.append(pd.read_csv(os.path.join(data_path, user, condition)))
+                except:
+                    continue
 
     df = pd.concat(files)
     test_df = pd.concat(test_files)
@@ -59,6 +69,10 @@ for test_user in test_user_list:
     aucs.append(roc_auc)
     print(roc_auc)
 
+    fprs.append(fpr)
+    tprs.append(tpr)
+    continue
+
     plt.plot(fpr, tpr, label = 'AUC = %0.2f' % roc_auc)
     # plt.legend(loc = 'lower right', fontsize="small", bbox_to_anchor=(1.2, 0))
     plt.plot([0, 1], [0, 1],'r--')
@@ -70,3 +84,6 @@ for test_user in test_user_list:
     fig.tight_layout()
     # plt.show()
     plt.savefig("./thresholding_leave_{}_user_out_temp.jpg".format(test_user_num))
+
+pickle.dump({"fpr": fprs, "tpr": tprs}, fout)
+fout.close()

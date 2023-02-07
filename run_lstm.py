@@ -37,7 +37,7 @@ n_frames = 5
 data_per_condition = 1200
 trials = 1
 
-test_user_num = 0
+test_user_num = 1
 
 save_files = "./{}_lstm_results.pickle".format(test_user_num)
 tprs = []
@@ -201,9 +201,9 @@ if args.command == "train":
         y_test = []
         for user in os.listdir(data_path):
             if user in test_user and user in Xs.keys():
-                # pass
-                # X_test.extend(rXs[user])
-                # y_test.extend(rys[user])
+                X_test.extend(Xs[user])
+                y_test.extend(ys[user])
+                continue
                 X_train.extend(Xs[user])
                 y_train.extend(ys[user])
             elif user in Xs.keys():
@@ -216,10 +216,10 @@ if args.command == "train":
         # X_test.extend(Xs[test_user][train_test_length:])
         # y_test.extend(ys[test_user][train_test_length:])
 
-        if args.initial == "none":
-            X_train_temp, y_train_temp, X_test, y_test = test_trials(test_user, 0)
-        elif args.initial == "add":
-            X_train_temp, y_train_temp, X_test, y_test = test_trials(test_user, trials)
+        # if args.initial == "none":
+        #     X_train_temp, y_train_temp, X_test, y_test = test_trials(test_user, 0)
+        # elif args.initial == "add":
+        #     X_train_temp, y_train_temp, X_test, y_test = test_trials(test_user, trials)
         # X_train.extend(X_test)
         # y_train.extend(y_test)
         # X_test = []

@@ -58,6 +58,7 @@ def cal_emd(aug_path, gaze_path, sal_path, data_path, condition, latency):
     last_contours_cnt = 0
     last_one_index = -1
     for img_index in tqdm(range(1, cnt)):
+        img_index = 448
         try:
             last_aug_img = cv2.imread(os.path.join(aug_path, "frame{}.jpg".format(img_index - 1)))
             aug_img = cv2.imread(os.path.join(aug_path, "frame{}.jpg".format(img_index)))
@@ -125,6 +126,9 @@ def cal_emd(aug_path, gaze_path, sal_path, data_path, condition, latency):
         sal_img_resize = cv2.resize(sal_img, (48, 28), interpolation=cv2.INTER_LANCZOS4)
         aug_resize = cv2.resize(aug_dis, (48, 28), interpolation=cv2.INTER_LANCZOS4)
         gaze_resize = cv2.resize(gaze_dis, (48, 28), interpolation=cv2.INTER_LANCZOS4)
+        
+        cv2.imwrite("frame448_ani_blur_resize.jpg", aug_resize)
+        exit()
 
         # cv2.imshow("sal", sal_img_resize / 255.0)
         # cv2.waitKey(0)
@@ -160,10 +164,10 @@ if __name__ == "__main__":
     saliency_path = "./formal/saliency"
     latency = 300
     for user in os.listdir(imgs_path):
-        # user = "hyw"
+        user = "gww"
         print(user)
         for condition in os.listdir(os.path.join(imgs_path, user)):
-            # condition = "hyw_physicalhome2_video_pos"
+            condition = "gww_physicalhome2_typing_color"
             print(condition)
             aug_path = os.path.join(imgs_path, user, condition, condition + "_ani.mp4")
             gaze_path = os.path.join(imgs_path, user, condition, condition + "_gaze.mp4")

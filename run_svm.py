@@ -17,14 +17,14 @@ data_per_user = 12000
 
 fig = plt.figure(figsize=(12, 6))
 
-test_user_num = 1
+test_user_num = 23
 
 save_files = "./{}_ada_results.pickle".format(test_user_num)
 tprs = []
 fprs = []
 fout = open(save_files, "wb")
-test_user_list = [[i] for i in os.listdir(data_path)]
-# test_user_list = [random.sample(os.listdir(data_path), test_user_num) for i in range(24)]
+# test_user_list = [[i] for i in os.listdir(data_path)]
+test_user_list = [random.sample(os.listdir(data_path), test_user_num) for i in range(24)]
 
 aucs = []
 for test_user in test_user_list:
