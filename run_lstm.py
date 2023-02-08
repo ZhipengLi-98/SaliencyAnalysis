@@ -37,14 +37,14 @@ n_frames = 5
 data_per_condition = 1200
 trials = 1
 
-test_user_num = 1
+test_user_num = 23
 
 save_files = "./{}_lstm_results.pickle".format(test_user_num)
 tprs = []
 fprs = []
 fout = open(save_files, "wb")
-test_user_list = [[i] for i in os.listdir(data_path)]
-# test_user_list = [random.sample(os.listdir(data_path), test_user_num) for i in range(24)]
+# test_user_list = [[i] for i in os.listdir(data_path)]
+test_user_list = [random.sample(os.listdir(data_path), test_user_num) for i in range(24)]
 
 Xs = {}
 ys = {}
@@ -201,11 +201,11 @@ if args.command == "train":
         y_test = []
         for user in os.listdir(data_path):
             if user in test_user and user in Xs.keys():
-                X_test.extend(Xs[user])
-                y_test.extend(ys[user])
+                # X_test.extend(Xs[user])
+                # y_test.extend(ys[user])
+                # X_train.extend(Xs[user])
+                # y_train.extend(ys[user])
                 continue
-                X_train.extend(Xs[user])
-                y_train.extend(ys[user])
             elif user in Xs.keys():
                 X_train.extend(Xs[user])
                 y_train.extend(ys[user])
@@ -216,10 +216,10 @@ if args.command == "train":
         # X_test.extend(Xs[test_user][train_test_length:])
         # y_test.extend(ys[test_user][train_test_length:])
 
-        # if args.initial == "none":
-        #     X_train_temp, y_train_temp, X_test, y_test = test_trials(test_user, 0)
-        # elif args.initial == "add":
-        #     X_train_temp, y_train_temp, X_test, y_test = test_trials(test_user, trials)
+        if args.initial == "none":
+            X_train_temp, y_train_temp, X_test, y_test = test_trials(test_user, 0)
+        elif args.initial == "add":
+            X_train_temp, y_train_temp, X_test, y_test = test_trials(test_user, trials)
         # X_train.extend(X_test)
         # y_train.extend(y_test)
         # X_test = []
@@ -247,7 +247,7 @@ if args.command == "train":
         print(y_test.shape)
 
         # X_train, X_test, y_train, y_test = train_test_split(X_train, y_train, test_size=0.2)
-        X_train, X_val, y_train, y_val = train_test_split(X_train, y_train, test_size=0.2)
+        # X_train, X_val, y_train, y_val = train_test_split(X_train, y_train, test_size=0.2)
 
         model = Sequential()
         model.add(Conv1D(filters=64, kernel_size=5, padding='same', activation=args.activation))
@@ -260,11 +260,12 @@ if args.command == "train":
         # model.compile(optimizer='adam', loss='mean_squared_error', metrics=["accuracy", tf.keras.metrics.AUC()]) 
         opt = keras.optimizers.Adam(1e-4)
         model.compile(optimizer=opt, loss='binary_crossentropy', metrics=["accuracy", "AUC"])
-        model.fit(X_train, y_train, epochs=50, batch_size=128, validation_data=(X_val, y_val))
+        model.fit(X_train, y_train, epochs=10, batch_size=128, validation_data=(X_test, y_test))
 
         y_pred = model.predict(X_test).ravel()
         y_test = y_test.flatten()
         fpr, tpr, threshold = metrics.roc_curve(y_test, y_pred)
+
         roc_auc = metrics.auc(fpr, tpr)
 
         aucs.append(roc_auc)

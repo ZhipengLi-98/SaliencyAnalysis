@@ -69,9 +69,9 @@ for test_user in test_user_list:
     aucs.append(roc_auc)
     print(roc_auc)
 
-    fprs.append(fpr)
-    tprs.append(tpr)
-    continue
+    # fprs.append(fpr)
+    # tprs.append(tpr)
+    # continue
 
     plt.plot(fpr, tpr, label = 'AUC = %0.2f' % roc_auc)
     # plt.legend(loc = 'lower right', fontsize="small", bbox_to_anchor=(1.2, 0))
@@ -85,5 +85,5 @@ for test_user in test_user_list:
     # plt.show()
     plt.savefig("./thresholding_leave_{}_user_out_temp.jpg".format(test_user_num))
 
-pickle.dump({"fpr": fprs, "tpr": tprs}, fout)
-fout.close()
+# pickle.dump({"fpr": fprs, "tpr": tprs}, fout)
+# fout.close()
