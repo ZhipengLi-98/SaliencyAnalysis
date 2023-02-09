@@ -37,14 +37,14 @@ n_frames = 5
 data_per_condition = 1200
 trials = 1
 
-test_user_num = 23
+test_user_num = 0
 
-save_files = "./{}_lstm_results.pickle".format(test_user_num)
+save_files = "./{}_lstm_results_5_mse.pickle".format(test_user_num)
 tprs = []
 fprs = []
 fout = open(save_files, "wb")
-# test_user_list = [[i] for i in os.listdir(data_path)]
-test_user_list = [random.sample(os.listdir(data_path), test_user_num) for i in range(24)]
+test_user_list = [[i] for i in os.listdir(data_path)]
+# test_user_list = [random.sample(os.listdir(data_path), test_user_num) for i in range(24)]
 
 Xs = {}
 ys = {}
@@ -203,8 +203,8 @@ if args.command == "train":
             if user in test_user and user in Xs.keys():
                 # X_test.extend(Xs[user])
                 # y_test.extend(ys[user])
-                # X_train.extend(Xs[user])
-                # y_train.extend(ys[user])
+                X_train.extend(Xs[user])
+                y_train.extend(ys[user])
                 continue
             elif user in Xs.keys():
                 X_train.extend(Xs[user])
@@ -246,8 +246,8 @@ if args.command == "train":
         print(X_test.shape)
         print(y_test.shape)
 
-        # X_train, X_test, y_train, y_test = train_test_split(X_train, y_train, test_size=0.2)
-        # X_train, X_val, y_train, y_val = train_test_split(X_train, y_train, test_size=0.2)
+        X_train, X_val, y_train, y_val = train_test_split(X_train, y_train, test_size=0.2)
+        # tempX, X_val, tempy, y_val = train_test_split(X_test, y_test, test_size=0.5)
 
         model = Sequential()
         model.add(Conv1D(filters=64, kernel_size=5, padding='same', activation=args.activation))
@@ -257,10 +257,10 @@ if args.command == "train":
         model.add(LSTM(32))
         model.add(Dropout(0.2))
         model.add(Dense(1, activation="sigmoid"))
-        # model.compile(optimizer='adam', loss='mean_squared_error', metrics=["accuracy", tf.keras.metrics.AUC()]) 
-        opt = keras.optimizers.Adam(1e-4)
-        model.compile(optimizer=opt, loss='binary_crossentropy', metrics=["accuracy", "AUC"])
-        model.fit(X_train, y_train, epochs=10, batch_size=128, validation_data=(X_test, y_test))
+        model.compile(optimizer='adam', loss='mean_squared_error', metrics=["accuracy", "AUC"]) 
+        # opt = keras.optimizers.Adam(1e-4)
+        # model.compile(optimizer=opt, loss='binary_crossentropy', metrics=["accuracy", "AUC"])
+        model.fit(X_train, y_train, epochs=5, batch_size=128, validation_data=(X_test, y_test))
 
         y_pred = model.predict(X_test).ravel()
         y_test = y_test.flatten()
