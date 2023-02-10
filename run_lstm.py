@@ -39,7 +39,7 @@ trials = 1
 
 test_user_num = 1
 
-save_files = "./{}_lstm_results_mse_50.pickle".format(test_user_num)
+save_files = "./{}_lstm_results_gaze_10.pickle".format(test_user_num)
 tprs = []
 fprs = []
 fout = open(save_files, "wb")
@@ -52,7 +52,7 @@ rXs = {}
 rys = {}
 # fea = ["emd_ani_sal", "labDelta", "area", "center_x", "center_y"]
 # fea = ["emd_ani_sal", "labDelta", "area"]
-fea = ["emd_ani_sal", "labDelta"]
+fea = ["emd_ani_gaze", "labDelta"]
 # fea = ["emd_ani_sal"]
 
 for user in os.listdir(data_path):
@@ -257,9 +257,9 @@ if args.command == "train":
         model.add(LSTM(32))
         model.add(Dropout(0.2))
         model.add(Dense(1, activation="sigmoid"))
-        model.compile(optimizer='adam', loss='mean_squared_error', metrics=["accuracy", "AUC"]) 
-        # opt = keras.optimizers.Adam(1e-4)
-        # model.compile(optimizer=opt, loss='binary_crossentropy', metrics=["accuracy", "AUC"])
+        # model.compile(optimizer='adam', loss='mean_squared_error', metrics=["accuracy", "AUC"]) 
+        opt = keras.optimizers.Adam(1e-4)
+        model.compile(optimizer=opt, loss='binary_crossentropy', metrics=["accuracy", "AUC"])
         model.fit(X_train, y_train, epochs=10, batch_size=128, validation_data=(X_test, y_test))
 
         y_pred = model.predict(X_test).ravel()
