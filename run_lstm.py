@@ -37,14 +37,14 @@ n_frames = 5
 data_per_condition = 1200
 trials = 1
 
-test_user_num = 1
+test_user_num = 6
 
-save_files = "./{}_lstm_results_gaze_10.pickle".format(test_user_num)
+save_files = "./{}_lstm_results_50.pickle".format(test_user_num)
 tprs = []
 fprs = []
 fout = open(save_files, "wb")
-test_user_list = [[i] for i in os.listdir(data_path)]
-# test_user_list = [random.sample(os.listdir(data_path), test_user_num) for i in range(24)]
+# test_user_list = [[i] for i in os.listdir(data_path)]
+test_user_list = [random.sample(os.listdir(data_path), test_user_num) for i in range(24)]
 
 Xs = {}
 ys = {}
@@ -52,7 +52,7 @@ rXs = {}
 rys = {}
 # fea = ["emd_ani_sal", "labDelta", "area", "center_x", "center_y"]
 # fea = ["emd_ani_sal", "labDelta", "area"]
-fea = ["emd_ani_gaze", "labDelta"]
+fea = ["emd_ani_sal", "labDelta"]
 # fea = ["emd_ani_sal"]
 
 for user in os.listdir(data_path):
@@ -246,7 +246,7 @@ if args.command == "train":
         print(X_test.shape)
         print(y_test.shape)
 
-        # X_train, X_val, y_train, y_val = train_test_split(X_train, y_train, test_size=0.2)
+        X_train, X_val, y_train, y_val = train_test_split(X_train, y_train, test_size=0.2)
         # tempX, X_val, tempy, y_val = train_test_split(X_test, y_test, test_size=0.5)
 
         model = Sequential()
@@ -257,10 +257,10 @@ if args.command == "train":
         model.add(LSTM(32))
         model.add(Dropout(0.2))
         model.add(Dense(1, activation="sigmoid"))
-        # model.compile(optimizer='adam', loss='mean_squared_error', metrics=["accuracy", "AUC"]) 
-        opt = keras.optimizers.Adam(1e-4)
-        model.compile(optimizer=opt, loss='binary_crossentropy', metrics=["accuracy", "AUC"])
-        model.fit(X_train, y_train, epochs=10, batch_size=128, validation_data=(X_test, y_test))
+        model.compile(optimizer='adam', loss='mean_squared_error', metrics=["accuracy", "AUC"]) 
+        # opt = keras.optimizers.Adam(1e-4)
+        # model.compile(optimizer=opt, loss='binary_crossentropy', metrics=["accuracy", "AUC"])
+        model.fit(X_train, y_train, epochs=50, batch_size=128, validation_data=(X_val, y_val))
 
         y_pred = model.predict(X_test).ravel()
         y_test = y_test.flatten()
